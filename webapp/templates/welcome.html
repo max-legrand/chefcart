@@ -1,0 +1,23 @@
+{{ define "content" }}
+<div class="container-fluid">
+    <br>
+    <div class="row">
+        <div class="col text-center">
+            <!-- <img src="large_chefcart.png" />
+            <br>
+            {{ if not .userobj}}
+            <br>
+            <a href="/signup"><button class="btn btn-primary">Signup</button></a>
+            <a href="/login"><button class="btn btn-primary">Login</button></a>
+            {{ else }}
+            <h1>Logged in as: {{.userobj}}</h1>
+            <br>
+            <a href="/logout"><button class="btn btn-primary">Logout</button></a>
+            {{ end }} -->
+            <div id="contentblock"></div>
+        </div>
+    </div>
+</div>
+<script type="text/babel" src="/js/checkUser.js"></script>
+
+{{end}}

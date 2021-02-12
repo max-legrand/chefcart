@@ -1,0 +1,6 @@
+syntax="proto3";
+package main;
+
+message Token {
+      string token = 1;
+}
