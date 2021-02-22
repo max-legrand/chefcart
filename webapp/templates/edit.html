@@ -1,0 +1,38 @@
+{{ define "content" }}
+<br>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-4">
+        </div>
+        <div class="col-4 text-center">
+            <h1>EDIT USER</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4">
+        </div>
+        <div class="col-4">
+            <br>
+            <h3>
+                Email:
+            </h3>
+            {{.userobj.Email}}
+            <br>
+            <br>
+            <h3>
+                City:
+            </h3>
+            {{.userinfo.City}}
+            <h3>
+                State:
+            </h3>
+            {{.userinfo.State}}
+            <br>
+            <h3>
+                Dietary Restictions:
+            </h3>
+            {{.userinfo.Restirctions}}
+        </div>
+    </div>
+</div>
+{{end}}

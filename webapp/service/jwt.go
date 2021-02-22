@@ -16,13 +16,14 @@ import (
 
 // JWTService ...
 type JWTService interface {
-	GenerateToken(email string, isUser bool) string
+	GenerateToken(email string, pass string, isUser bool) string
 	ValidateToken(token string) (*jwt.Token, error)
 }
 
 // Custom fields we can expand on
 type authCustomClaims struct {
 	Name string `json:"name"`
+	Pass string `json:"pass"`
 	User bool   `json:"user"`
 	jwt.StandardClaims
 }
@@ -55,9 +56,10 @@ func getSecretKey() string {
 }
 
 // generate token and seed with email information
-func (service *jwtServices) GenerateToken(email string, isUser bool) string {
+func (service *jwtServices) GenerateToken(email string, pass string, isUser bool) string {
 	claims := &authCustomClaims{
 		email,
+		pass,
 		isUser,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 48).Unix(),

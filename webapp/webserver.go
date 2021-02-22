@@ -28,6 +28,7 @@ func tempRender() multitemplate.Renderer {
 	r.AddFromFiles("index", "Webapp/templates/base.html", "Webapp/templates/welcome.html")
 	r.AddFromFiles("signup", "Webapp/templates/base.html", "Webapp/templates/signup.html")
 	r.AddFromFiles("login", "Webapp/templates/base.html", "Webapp/templates/login.html")
+	r.AddFromFiles("edit", "Webapp/templates/base.html", "Webapp/templates/edit.html")
 	r.AddFromFiles("notfound", "Webapp/templates/base.html", "Webapp/templates/notfound.html")
 	// r.AddFromFiles("about", "templates/base.html", "templates/about.html")
 	// r.AddFromFilesFuncs("about", template.FuncMap{"mod": func(i, j int) bool { return i%j == 0 }}, "templates/base.html", "templates/about.html")
@@ -48,33 +49,26 @@ func LaunchServer() {
 	// Intiialize SQLite DB
 	models.ConnectDB()
 
-	// Get index page
+	// NOTE : Get index page
 	router.GET("/", func(c *gin.Context) {
 		// Serve index.html
+		message := authuser(c)
+		if message.Token != "" {
+			c.HTML(200, "index", gin.H{"userobj": message.Token})
+			return
+		}
 		c.HTML(200, "index", gin.H{})
 	})
 
 	// API call to determine if user is valid
 	router.GET("/authuser", func(c *gin.Context) {
 		// Check cookie value is set and if cookie corresponds to valid JWT
-		token, valid := middleware.ValidToken(c)
-		// If valid send username from JWT
-		if valid {
-			message := &protobuf.Token{Token: token.Claims.(jwt.MapClaims)["name"].(string)}
-			data, _ := proto.Marshal(message)
-			stringarray := fmt.Sprint(data)
-			stringarray = stringarray[1 : len(stringarray)-1]
-			c.ProtoBuf(200, message)
-
-			return
-		}
-		// If not, send empty string
-		message := &protobuf.Token{Token: ""}
+		message := authuser(c)
 		c.ProtoBuf(200, message)
 	})
 
 	// Present not found page
-	router.GET("/notfound/", func(c *gin.Context) {
+	router.GET("/notfound/:type", func(c *gin.Context) {
 		// Get type url parameter
 		// If param = "login" -> present invalid credentials, else present username already exists
 		if c.Param("type") == "login" {
@@ -91,6 +85,7 @@ func LaunchServer() {
 		c.HTML(200, "login", gin.H{})
 	})
 
+	// NOTE : signup user logic
 	router.POST("/signup_user", func(c *gin.Context) {
 		email := c.PostForm("email")
 		password := c.PostForm("password")
@@ -101,14 +96,17 @@ func LaunchServer() {
 		users := []models.User{}
 		models.DB.Where("email = ?", email).Find(&users)
 		if len(users) == 0 {
-			models.DB.Create(&models.User{Email: email, Password: newpass})
+			userinfo := models.UserInfo{Restirctions: []string{}, City: "", State: ""}
+			models.DB.Create(&userinfo)
+			user := models.User{Email: email, Password: newpass, UserInfo: userinfo}
+			models.DB.Create(&user)
 			c.Redirect(http.StatusFound, "/")
 			return
 		}
-		c.Redirect(http.StatusFound, "/notfound")
+		c.Redirect(http.StatusFound, "/notfound/signup")
 	})
 
-	// Process user login
+	// NOTE : user login logic
 	router.POST("/login_user", func(c *gin.Context) {
 		// Generate token
 		token := loginController.Login(c)
@@ -128,7 +126,23 @@ func LaunchServer() {
 			c.Redirect(http.StatusFound, "/")
 			return
 		}
-		c.Redirect(http.StatusFound, "/notfound?")
+		c.Redirect(http.StatusFound, "/notfound/login")
+	})
+
+	// NOTE : edit user info logic
+	router.GET("/useredit", func(c *gin.Context) {
+		// Generate token
+		message := authuser(c)
+		if message.Token != "" {
+			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
+			user := models.User{}
+			userinfo := models.UserInfo{}
+			models.DB.Where("email = ?", message.Token).First(&user)
+			models.DB.Where("ID = ?", user.ID).First(&userinfo)
+			c.HTML(200, "edit", gin.H{"userobj": user, "userinfo": userinfo})
+			return
+		}
+		c.Redirect(http.StatusFound, "/login")
 	})
 
 	// Logout user
@@ -139,4 +153,23 @@ func LaunchServer() {
 	})
 
 	router.Run()
+}
+
+func authuser(c *gin.Context) *protobuf.Token {
+	token, valid := middleware.ValidToken(c)
+	// If valid send username from JWT
+	if valid {
+		isUserAuthenticated := service.LoginUser(token.Claims.(jwt.MapClaims)["name"].(string), token.Claims.(jwt.MapClaims)["pass"].(string))
+		if isUserAuthenticated {
+			message := &protobuf.Token{Token: token.Claims.(jwt.MapClaims)["name"].(string)}
+			data, _ := proto.Marshal(message)
+			stringarray := fmt.Sprint(data)
+			stringarray = stringarray[1 : len(stringarray)-1]
+			return message
+		}
+
+	}
+	// If not, send empty string
+	message := &protobuf.Token{Token: ""}
+	return message
 }

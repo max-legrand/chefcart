@@ -27,8 +27,9 @@ import (
 
 // Decrypt ...
 func Decrypt(encryptedString string) (decryptedString string) {
-	godotenv.Load("../.env")
-	key, _ := hex.DecodeString(os.Getenv("SECRET"))
+	godotenv.Load(".env")
+	SECRET := os.Getenv("SECRET")
+	key, _ := hex.DecodeString(SECRET)
 	enc, _ := hex.DecodeString(encryptedString)
 
 	block, err := aes.NewCipher(key)
@@ -55,7 +56,7 @@ func Decrypt(encryptedString string) (decryptedString string) {
 
 // Encrypt ...
 func Encrypt(stringToEncrypt string) (encryptedString string) {
-	godotenv.Load("../.env")
+	godotenv.Load(".env")
 	key, _ := hex.DecodeString(os.Getenv("SECRET"))
 	plaintext := []byte(stringToEncrypt)
 
