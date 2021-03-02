@@ -139,7 +139,8 @@ func LaunchServer() {
 			userinfo := models.UserInfo{}
 			models.DB.Where("email = ?", message.Token).First(&user)
 			models.DB.Where("ID = ?", user.ID).First(&userinfo)
-			c.HTML(200, "edit", gin.H{"userobj": user, "userinfo": userinfo})
+			fmt.Println(userinfo)
+			c.HTML(200, "edit", gin.H{"userobj": user, "city": userinfo.City, "state": userinfo.State, "restrictions": userinfo.Restirctions})
 			return
 		}
 		c.Redirect(http.StatusFound, "/login")

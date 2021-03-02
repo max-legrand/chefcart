@@ -5,9 +5,12 @@ Package main ...
 package main
 
 import (
+	"fmt"
 	"main/webapp"
 )
 
 func main() {
+	fmt.Println("Starting up...")
 	webapp.LaunchServer()
+	// webapp.Prototest()
 }
