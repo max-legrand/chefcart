@@ -5,11 +5,17 @@ Package models ...
 package models
 
 import (
+	"net/url"
+	"os"
+	"strings"
+
 	"github.com/jinzhu/gorm"
+	"github.com/joho/godotenv"
 	"github.com/lib/pq"
 
 	// sqlite
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	// _ "github.com/jinzhu/gorm/dialects/psql"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 // UserInfo ...
@@ -45,7 +51,24 @@ var DB *gorm.DB
 
 // ConnectDB ...
 func ConnectDB() {
-	database, err := gorm.Open("sqlite3", "test.db")
+	godotenv.Load(".env")
+	// database, err := gorm.Open("sqlite3", "test.db")
+	// postgres://omntajdhdpgnrw:80fc2161b99b8ca8a6a045f5a30bc5fc771a81c748d181d7f8d5db76ef84c0b2@ec2-18-207-95-219.compute-1.amazonaws.com:5432/dc96vunmur80be
+	DBURL := os.Getenv("DATABASE_URL")
+	userEndIndex := strings.Index(DBURL[11:], ":") + 11
+	passEndIndex := strings.Index(DBURL, "@")
+	hostEndIndex := strings.Index(DBURL[passEndIndex:], ":") + passEndIndex
+	username := DBURL[11:userEndIndex]
+	password := DBURL[userEndIndex+1 : passEndIndex]
+	host := DBURL[passEndIndex+1 : hostEndIndex]
+	dbname := DBURL[hostEndIndex+6:]
+	dsn := url.URL{
+		User:   url.UserPassword(username, password),
+		Scheme: "postgres",
+		Host:   host,
+		Path:   dbname,
+	}
+	database, err := gorm.Open("postgres", dsn.String())
 	if err != nil {
 		panic("Failed to connect to DB")
 	}

@@ -25,11 +25,11 @@ import (
 
 func tempRender() multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
-	r.AddFromFiles("index", "Webapp/templates/base.html", "Webapp/templates/welcome.html")
-	r.AddFromFiles("signup", "Webapp/templates/base.html", "Webapp/templates/signup.html")
-	r.AddFromFiles("login", "Webapp/templates/base.html", "Webapp/templates/login.html")
-	r.AddFromFiles("edit", "Webapp/templates/base.html", "Webapp/templates/edit.html")
-	r.AddFromFiles("notfound", "Webapp/templates/base.html", "Webapp/templates/notfound.html")
+	r.AddFromFiles("index", "webapp/templates/base.html", "webapp/templates/welcome.html")
+	r.AddFromFiles("signup", "webapp/templates/base.html", "webapp/templates/signup.html")
+	r.AddFromFiles("login", "webapp/templates/base.html", "webapp/templates/login.html")
+	r.AddFromFiles("edit", "webapp/templates/base.html", "webapp/templates/edit.html")
+	r.AddFromFiles("notfound", "webapp/templates/base.html", "webapp/templates/notfound.html")
 	// r.AddFromFiles("about", "templates/base.html", "templates/about.html")
 	// r.AddFromFilesFuncs("about", template.FuncMap{"mod": func(i, j int) bool { return i%j == 0 }}, "templates/base.html", "templates/about.html")
 	return r
