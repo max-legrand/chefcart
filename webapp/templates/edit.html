@@ -14,7 +14,7 @@
         <div class="col-4">
         </div>
         <div class="col-4">
-            <form action="/login_user" method="POST">
+            <form action="/edit_user" method="POST">
                 <div class="form-group">
                     <label for="exampleInputEmail1">Email address: {{.userobj.Email}}</label>
                 </div>
@@ -88,7 +88,7 @@
                     <br>
                     <select style="width: 100% !important" id="restrictions" name="restrictions"
                         class="selectpicker form-control" data-live-search=" true" data-selected-text-format="count > 4"
-                        multiple required>
+                        multiple="multiple">
                         <option value="LI">Lactose Intolerance</option>
                         <option value="V">Vegetarian</option>
                         <option value="VG">Vegan</option>
@@ -110,15 +110,12 @@
     $(document).ready(function () {
         console.log("ready!");
         console.log("{{.restrictions}}");
+        $('#stateselect').selectpicker()
         $('#stateselect').val('{{.state}}')
+        $('#stateselect').selectpicker("refresh")
         $('#restrictions').selectpicker();
         let dataarray = "{{.restrictions}}".substring(1, "{{.restrictions}}".length - 1).split(" ")
         console.log(dataarray);
-        // {{ range $val := .restrictions }}
-        //     console.log("{{$val}}")
-        //     $('#restrictions').val({{$val}})
-        //     $('#restrictions').selectpicker("refresh");
-        // {{ end }}
         $('#restrictions').val(dataarray)
         $('#restrictions').selectpicker("refresh");
     });

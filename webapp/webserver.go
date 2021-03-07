@@ -146,6 +146,38 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
+	// NOTE : edit user info logic
+	router.POST("/edit_user", func(c *gin.Context) {
+		// Generate token
+		message := authuser(c)
+		if message.Token != "" {
+			password := c.PostForm("Password")
+			city := c.PostForm("City")
+			state := c.PostForm("State")
+			restricitons := c.PostFormArray("restrictions")
+			fmt.Println(restricitons)
+			// Hash and update password
+			data := []byte(password)
+			hash := md5.Sum(data)
+			password = hex.EncodeToString(hash[:])
+			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
+			user := models.User{}
+			userinfo := models.UserInfo{}
+			models.DB.Where("email = ?", message.Token).First(&user)
+			models.DB.Where("ID = ?", user.ID).First(&userinfo)
+			user.Password = password
+			userinfo.City = city
+			userinfo.State = state
+			userinfo.Restirctions = restricitons
+			models.DB.Save(&user)
+			models.DB.Save(&userinfo)
+			// c.HTML(200, "edit", gin.H{"userobj": user, "city": userinfo.City, "state": userinfo.State, "restrictions": userinfo.Restirctions})
+			c.Redirect(http.StatusFound, "/")
+			return
+		}
+		c.Redirect(http.StatusFound, "/login")
+	})
+
 	// Logout user
 	router.GET("/logout", func(c *gin.Context) {
 		// delete token cookie and send home
