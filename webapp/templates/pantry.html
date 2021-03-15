@@ -1,0 +1,51 @@
+{{ define "content" }}
+
+<style>
+    a {
+        text-decoration: none !important;
+    }
+</style>
+<div class="container-fluid">
+
+    <br>
+    <div class="row">
+
+        <div class="col-1"></div>
+        <div class="col-10">
+            <h1>My Digital Pantry</h1>
+            <table class="table">
+                <tr>
+                    <th></th>
+                    <th>Name</th>
+                    <th>Quantity</th>
+                    <th>Weight</th>
+                    <th>Volume</th>
+                    <th>Expiration</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                {{ range $entry := .pantry}}
+                <tr>
+                    <td>
+                        <img style="width: 40px" src="{{$entry.ImageLink}}">
+                    </td>
+                    <td>{{$entry.Name}}</td>
+                    <td>{{$entry.Quantity}}</td>
+                    <td>{{$entry.Weight}}</td>
+                    <td>{{$entry.Volume}}</td>
+                    <td>{{$entry.Expiration}}</td>
+                    <td><a href="/edit/{{$entry.ID}}">Edit</a></td>
+                    <td><a href="/delete/{{$entry.ID}}">Delete</a></td>
+                </tr>
+                {{end}}
+            </table>
+            <a href="/additem" class="btn btn-primary" role="button">Add +</a>
+            <br>
+            <br>
+            <a href="/" class="btn btn-primary" role="button">Back</a>
+        </div>
+    </div>
+
+</div>
+
+{{end}}

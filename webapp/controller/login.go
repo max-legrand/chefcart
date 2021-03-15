@@ -49,9 +49,9 @@ func (controller *loginController) Login(ctx *gin.Context) string {
 	credential.Password = hex.EncodeToString(hash[:])
 
 	// if user is valid, generate token
-	isUserAuthenticated := service.LoginUser(credential.Email, credential.Password)
+	isUserAuthenticated, ID := service.LoginUser(credential.Email, credential.Password)
 	if isUserAuthenticated {
-		return controller.jWtService.GenerateToken(credential.Email, credential.Password, true)
+		return controller.jWtService.GenerateToken(credential.Email, ID, credential.Password, true)
 	}
 	return ""
 }

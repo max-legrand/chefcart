@@ -20,7 +20,7 @@ import (
 
 // UserInfo ...
 type UserInfo struct {
-	gorm.Model
+	ID           int `gorm:"ForeignKey:ID"`
 	City         string
 	State        string
 	Restirctions pq.StringArray `gorm:"type:character varying[]"`
@@ -31,20 +31,20 @@ type User struct {
 	gorm.Model
 	Email    string
 	Password string
-	UserInfo UserInfo `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
-// type Usertest struct {
-// 	gorm.Model
-// 	Name      string
-// 	CompanyID int
-// 	Company   Company
-// }
-
-// type Company struct {
-// 	ID   int
-// 	Name string
-// }
+// Ingredient...
+type Ingredient struct {
+	gorm.Model
+	UID uint `gorm:"ForeignKey:ID"`
+	// Ingredients will be in form "<NAME>|<QUANTITY>|<WEIGHT>|<VOLUME>|<EXPIRATION>"
+	Name       string
+	Quantity   string
+	Weight     string
+	Volume     string
+	Expiration string
+	ImageLink  string
+}
 
 // DB ...
 var DB *gorm.DB
@@ -72,12 +72,8 @@ func ConnectDB() {
 		panic("Failed to connect to DB")
 	}
 
-	database.AutoMigrate(&User{}, &UserInfo{})
-	// database.AutoMigrate(&Usertest{})
-	// database.AutoMigrate(&Company{})
+	database.AutoMigrate(&User{}, &UserInfo{}, &Ingredient{})
+	// database.Model(&User{}).AddForeignKey("UserInfoObj", "user_infos(id)", "cascade", "cascade")
+	// database.Model(&Ingredient{}).AddForeignKey("UserObj", "users(id)", "cascade", "cascade")
 	DB = database
-
-	// comptest := Company{ID: 100, Name: "Mycompnay"}
-	// DB.Create(&Usertest{Name: "test", Company: comptest})
-
 }
