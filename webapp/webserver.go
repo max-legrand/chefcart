@@ -37,6 +37,7 @@ func tempRender() multitemplate.Renderer {
 	r.AddFromFiles("notfound", "webapp/templates/base.html", "webapp/templates/notfound.html")
 	r.AddFromFiles("pantry", "webapp/templates/base.html", "webapp/templates/pantry.html")
 	r.AddFromFiles("additem", "webapp/templates/base.html", "webapp/templates/additem.html")
+	r.AddFromFiles("edititem", "webapp/templates/base.html", "webapp/templates/edititem.html")
 	// r.AddFromFiles("about", "templates/base.html", "templates/about.html")
 	// r.AddFromFilesFuncs("about", template.FuncMap{"mod": func(i, j int) bool { return i%j == 0 }}, "templates/base.html", "templates/about.html")
 	return r
@@ -219,6 +220,7 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
+	// Note: Add item logic
 	router.POST("/additem", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -274,17 +276,166 @@ func LaunchServer() {
 				} else {
 					image = ""
 				}
-				models.DB.Create(&models.Ingredient{
-					Name:       name,
-					UID:        uint(message.Claims.(jwt.MapClaims)["UID"].(float64)),
-					Quantity:   quantity,
-					Volume:     volume,
-					Weight:     weight,
-					ImageLink:  image,
-					Expiration: date,
-				})
 			}
+			models.DB.Create(&models.Ingredient{
+				Name:       name,
+				UID:        uint(message.Claims.(jwt.MapClaims)["UID"].(float64)),
+				Quantity:   quantity,
+				Volume:     volume,
+				Weight:     weight,
+				ImageLink:  image,
+				Expiration: date,
+			})
 			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
+			c.Redirect(http.StatusFound, "/pantry")
+			return
+		}
+		c.Redirect(http.StatusFound, "/login")
+	})
+
+	router.GET("/edit/:id", func(c *gin.Context) {
+		message := authuser(c)
+		if message != nil {
+			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
+
+			user := models.User{}
+			pantry := models.Ingredient{}
+			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
+			result := models.DB.Order("expiration asc").Find(&pantry, "uid = ? AND ID = ?", user.ID, c.Param("id")).First(&pantry)
+			fmt.Println(pantry)
+			if result.RowsAffected == 0 {
+				c.Redirect(http.StatusFound, "/pantry")
+				return
+			}
+			quantity := ""
+			if pantry.Quantity == "N/A" {
+				quantity = "0"
+			} else {
+				quantity = pantry.Quantity
+			}
+
+			weight := "0"
+			weightUnits := "grams"
+			if pantry.Weight == "N/A" {
+				weight = "0"
+			} else {
+				stringList := strings.Split(pantry.Weight, " ")
+				weight = stringList[0]
+				weightUnits = stringList[1]
+			}
+
+			volume := "0"
+			volumeUnits := "fl.oz"
+			if pantry.Volume == "N/A" {
+				volume = "0"
+			} else {
+				stringList := strings.Split(pantry.Volume, " ")
+				volume = stringList[0]
+				volumeUnits = stringList[1]
+			}
+
+			c.HTML(200, "edititem", gin.H{"userobj": user, "pantry": pantry, "quantity": quantity, "weight": weight, "weightUnits": weightUnits, "volume": volume, "volumeUnits": volumeUnits})
+			return
+		}
+		c.Redirect(http.StatusFound, "/login")
+	})
+
+	router.GET("/delete/:id", func(c *gin.Context) {
+		message := authuser(c)
+		if message != nil {
+			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
+			user := models.User{}
+			pantry := models.Ingredient{}
+			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
+			result := models.DB.Order("expiration asc").Find(&pantry, "uid = ? AND ID = ?", user.ID, c.Param("id")).First(&pantry)
+			fmt.Println(pantry)
+			if result.RowsAffected == 0 {
+				c.Redirect(http.StatusFound, "/pantry")
+				return
+			}
+			models.DB.Delete(&pantry)
+			c.Redirect(http.StatusFound, "/pantry")
+			return
+		}
+		c.Redirect(http.StatusFound, "/pantry")
+	})
+
+	router.POST("/edit/:id", func(c *gin.Context) {
+		message := authuser(c)
+		if message != nil {
+			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
+			user := models.User{}
+			pantry := models.Ingredient{}
+			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
+			result := models.DB.Order("expiration asc").Find(&pantry, "uid = ? AND ID = ?", user.ID, c.Param("id")).First(&pantry)
+			fmt.Println(pantry)
+			if result.RowsAffected == 0 {
+				c.Redirect(http.StatusFound, "/pantry")
+				return
+			}
+
+			date := c.PostForm("Expiration")
+			if date != "" {
+				if invalidDate(date) {
+					date = ""
+				}
+			}
+			name := strings.Title(strings.ToLower(c.PostForm("Name")))
+			quantity := c.PostForm("Quantity")
+			if quantity == "0" {
+				quantity = "N/A"
+			}
+			volume := c.PostForm("Volume")
+			if volume != "0" {
+				volume += (" " + c.PostForm("VolumeUnits"))
+			} else {
+				volume = "N/A"
+			}
+			weight := c.PostForm("Weight")
+			if weight != "0" {
+				weight += (" " + c.PostForm("WeightUnits"))
+			} else {
+				weight = "N/A"
+			}
+			image := c.PostForm("Image")
+			if image == "Default" {
+				url := "https://api.spoonacular.com/food/search?query=" + name + "&offset=0&number=1&apiKey=" + os.Getenv("APIKEY")
+				method := "GET"
+				client := &http.Client{}
+				req, err := http.NewRequest(method, url, nil)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				res, err := client.Do(req)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				defer res.Body.Close()
+				body, err := ioutil.ReadAll(res.Body)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				jsonString := string(body)
+				fmt.Println(jsonString)
+				numResults := gjson.Get(jsonString, "searchResults.5")
+				if numResults.Get("totalResults").Int() == 1 {
+					image = "https://spoonacular.com/cdn/ingredients_100x100/" + numResults.Get("results.0.image").String()
+				} else {
+					image = ""
+				}
+
+			}
+			pantry.Name = name
+			pantry.Quantity = quantity
+			pantry.Volume = volume
+			pantry.Weight = weight
+			pantry.ImageLink = image
+			pantry.Expiration = date
+			models.DB.Save(&pantry)
+
 			c.Redirect(http.StatusFound, "/pantry")
 			return
 		}

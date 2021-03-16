@@ -12,26 +12,28 @@
 
         <div class="col-1"></div>
         <div class="col-10">
-            <h1>Add item</h1>
-            <form action="/additem" method="POST">
+            <h1>Edit item</h1>
+            <br>
+            <form action="/edit/{{.pantry.ID}}" method="POST">
                 <div class="form-group">
                     <label for="Name">Item Name</label>
-                    <input type="text" class="form-control" id="Name" placeholder="Name" name="Name" required>
+                    <input type="text" class="form-control" id="Name" value="{{.pantry.Name}}" name="Name" required>
                 </div>
                 <div class="form-group">
                     <label for="Quantity">Quantity</label>
                     <input step="0.01" min="0" type="number" class="form-control" name="Quantity" id="Quantity"
-                        value="1">
+                        value="{{.quantity}}">
                     <small id="QuantityHelp" class="form-text text-muted">Set to 0 for N/A</small>
                 </div>
                 <div class="form-group">
                     <label for="Volume">Volume</label>
-                    <input step="0.01" min="0" type="number" name="Volume" class="form-control" id="Volume" value="1">
+                    <input step="0.01" min="0" type="number" name="Volume" class="form-control" id="Volume"
+                        value="{{.volume}}">
                     <small id="QuantityHelp" class="form-text text-muted">Set to 0 for N/A</small>
                 </div>
                 <div class="form-group">
                     <label for="Volume">Volume Units</label>
-                    <select class="form-control" name="VolumeUnits">
+                    <select class="form-control" name="VolumeUnits" id="VolumeUnits">
                         <option>fl.oz</option>
                         <option>cups</option>
                         <option>pints</option>
@@ -43,12 +45,13 @@
                 </div>
                 <div class="form-group">
                     <label for="Weight">Weight</label>
-                    <input step="0.01" min="0" type="number" name="Weight" class="form-control" id="Weight" value="1">
+                    <input step="0.01" min="0" type="number" name="Weight" class="form-control" id="Weight"
+                        value="{{.weight}}">
                     <small id="WeightHelp" class="form-text text-muted">Set to 0 for N/A</small>
                 </div>
                 <div class="form-group">
                     <label for="Weight">Weight Units</label>
-                    <select class="form-control" name="WeightUnits">
+                    <select class="form-control" name="WeightUnits" id="WeightUnits">
                         <option>grams</option>
                         <option>kilograms</option>
                         <option>lbs</option>
@@ -58,7 +61,8 @@
                 <div class="form-group">
                     <label for="Expiration">Expiraiton Date</label>
                     <div class="input-group mb-3">
-                        <input type="text" name="Expiration" id="Expiration" class="form-control">
+                        <input type="text" name="Expiration" id="Expiration" class="form-control"
+                            value="{{.pantry.Expiration}}">
                         <div class="input-group-append">
                             <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
                         </div>
@@ -69,12 +73,13 @@
                 </div>
                 <div class="form-group">
                     <label for="Image">Image Link</label>
-                    <input type="text" class="form-control" id="Image" value="Default" name="Image">
+                    <input type="text" class="form-control" id="Image" value="Default" name="Image"
+                        value="{{.pantry.ImageLink}}">
                     <small id="ImageHelp" class="form-text text-muted">Enter custom image link. Enter "Default" for
                         default image if applicable. Leave blank for no image.</small>
                 </div>
                 <br>
-                <button type="submit" class="btn btn-primary">Add item</button>
+                <button type="submit" class="btn btn-primary">Update</button>
             </form>
             <br>
             <a href="/pantry" class="btn btn-primary" role="button">Back</a>
@@ -90,6 +95,9 @@
         $('#Expiration').datepicker({
             todayHighlight: true
         });
+
+        $('#VolumeUnits').val('{{.volumeUnits}}')
+        $('#WeightUnits').val('{{.weightUnits}}')
     });
 </script>
 
