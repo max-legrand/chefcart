@@ -25,7 +25,7 @@ Vue.component('welcome-comp', {
                     .then(response => response.json())
                     .then(json => {
                         this.isMobile = json.isMobile
-                        if (this.isMobile) {
+                        if (this.isMobile && this.username != "") {
                             this.username = this.username.substring(0, this.username.indexOf("@")) + "\n" + this.username.substring(this.username.indexOf("@"))
                         }
                     })

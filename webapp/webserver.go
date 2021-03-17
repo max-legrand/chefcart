@@ -55,7 +55,7 @@ func LaunchServer() {
 	// Router & Template Setup
 	router := gin.Default()
 	router.HTMLRender = tempRender()
-	router.Use(static.Serve("/js", static.LocalFile("Webapp/templates/js", true)))
+	router.Use(static.Serve("/js", static.LocalFile("webapp/templates/js", true)))
 	// Intiialize SQLite DB
 	models.ConnectDB()
 	router.Use(mobile.Resolver())
@@ -168,6 +168,11 @@ func LaunchServer() {
 	// NOTE : edit user info logic
 	router.GET("/useredit", func(c *gin.Context) {
 		// Generate token
+		d := mobile.GetDevice(c)
+		isMobile := false
+		if d.Mobile() {
+			isMobile = true
+		}
 		message := authuser(c)
 		if message != nil {
 			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
@@ -176,7 +181,7 @@ func LaunchServer() {
 			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
 			models.DB.Where("ID = ?", user.ID).First(&userinfo)
 			fmt.Println(userinfo)
-			c.HTML(200, "edit", gin.H{"userobj": user, "city": userinfo.City, "state": userinfo.State, "restrictions": userinfo.Restirctions})
+			c.HTML(200, "edit", gin.H{"isMobile": isMobile, "userobj": user, "city": userinfo.City, "state": userinfo.State, "restrictions": userinfo.Restirctions})
 			return
 		}
 		c.Redirect(http.StatusFound, "/login")
