@@ -1,53 +1,17 @@
 {{ define "content" }}
-
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
 <style>
     a {
         text-decoration: none !important;
     }
 </style>
-<div class="container-fluid">
+<div class="container-fluid" id="pantryDiv">
 
-    <br>
-    <div class="row">
-
-        <div class="col-1"></div>
-        <div class="col-10">
-            <h1>My Digital Pantry</h1>
-            <table class="table" id="myTable">
-                <tr>
-                    <th></th>
-                    <th onclick="sortTable(1)">Name</th>
-                    <th onclick="sortTable(2)">Quantity</th>
-                    <th onclick="sortTable(3)">Weight</th>
-                    <th onclick="sortTable(4)">Volume</th>
-                    <th onclick="sortTable(5)">Expiration</th>
-                    <th></th>
-                    <th></th>
-                </tr>
-                {{ range $entry := .pantry}}
-                <tr>
-                    <td>
-                        <img style="width: 40px; height: 40px" src="{{$entry.ImageLink}}">
-                    </td>
-                    <td>{{$entry.Name}}</td>
-                    <td>{{$entry.Quantity}}</td>
-                    <td>{{$entry.Weight}}</td>
-                    <td>{{$entry.Volume}}</td>
-                    <td>{{$entry.Expiration}}</td>
-                    <td><a href="/edit/{{$entry.ID}}">Edit</a></td>
-                    <td><a href="/delete/{{$entry.ID}}">Delete</a></td>
-                </tr>
-                {{end}}
-            </table>
-            <a href="/additem" class="btn btn-primary" role="button">Add +</a>
-            <br>
-            <br>
-            <a href="/" class="btn btn-primary" role="button">Back</a>
-        </div>
-    </div>
+    <pantry></pantry>
 
 </div>
 
+<script type="text/babel" src="/js/loadPantry.js"></script>
 
 <script>
     function sortTable(n) {

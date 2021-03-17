@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
+	mobile "github.com/floresj/go-contrib-mobile"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
@@ -38,6 +39,7 @@ func tempRender() multitemplate.Renderer {
 	r.AddFromFiles("pantry", "webapp/templates/base.html", "webapp/templates/pantry.html")
 	r.AddFromFiles("additem", "webapp/templates/base.html", "webapp/templates/additem.html")
 	r.AddFromFiles("edititem", "webapp/templates/base.html", "webapp/templates/edititem.html")
+	r.AddFromFiles("recipe", "webapp/templates/base.html", "webapp/templates/recipe.html")
 	// r.AddFromFiles("about", "templates/base.html", "templates/about.html")
 	// r.AddFromFilesFuncs("about", template.FuncMap{"mod": func(i, j int) bool { return i%j == 0 }}, "templates/base.html", "templates/about.html")
 	return r
@@ -56,6 +58,7 @@ func LaunchServer() {
 	router.Use(static.Serve("/js", static.LocalFile("Webapp/templates/js", true)))
 	// Intiialize SQLite DB
 	models.ConnectDB()
+	router.Use(mobile.Resolver())
 
 	// NOTE : Get index page
 	router.GET("/", func(c *gin.Context) {
@@ -72,7 +75,21 @@ func LaunchServer() {
 	router.GET("/authuser", func(c *gin.Context) {
 		// Check cookie value is set and if cookie corresponds to valid JWT
 		message := authuser(c)
-		c.ProtoBuf(200, message)
+		if message != nil {
+			c.JSON(200, gin.H{"token": message})
+			return
+		}
+		c.JSON(200, gin.H{"token": ""})
+	})
+
+	router.GET("/isMobile", func(c *gin.Context) {
+		// Check cookie value is set and if cookie corresponds to valid JWT
+		d := mobile.GetDevice(c)
+		isMobile := false
+		if d.Mobile() {
+			isMobile = true
+		}
+		c.JSON(200, gin.H{"isMobile": isMobile})
 	})
 
 	// Present not found page
@@ -87,10 +104,21 @@ func LaunchServer() {
 	})
 
 	router.GET("/signup", func(c *gin.Context) {
-		c.HTML(200, "signup", gin.H{})
+		d := mobile.GetDevice(c)
+		isMobile := false
+		if d.Mobile() {
+			isMobile = true
+		}
+		c.HTML(200, "signup", gin.H{"isMobile": isMobile})
 	})
+
 	router.GET("/login", func(c *gin.Context) {
-		c.HTML(200, "login", gin.H{})
+		d := mobile.GetDevice(c)
+		isMobile := false
+		if d.Mobile() {
+			isMobile = true
+		}
+		c.HTML(200, "login", gin.H{"isMobile": isMobile})
 	})
 
 	// NOTE : signup user logic
@@ -199,15 +227,47 @@ func LaunchServer() {
 		message := authuser(c)
 		if message != nil {
 			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
+			// user := models.User{}
+			// pantry := []models.Ingredient{}
+			// models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
+			// models.DB.Order("expiration asc").Find(&pantry, "uid = ?", user.ID)
+			// fmt.Println(pantry)
+			// c.HTML(200, "pantry", gin.H{"userobj": user, "pantry": pantry})
+			c.HTML(200, "pantry", gin.H{})
+			return
+		}
+		c.Redirect(http.StatusFound, "/login")
+	})
+
+	router.GET("/recipe", func(c *gin.Context) {
+		// Generate token
+		message := authuser(c)
+		if message != nil {
+			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
+			// user := models.User{}
+			// pantry := []models.Ingredient{}
+			// models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
+			// models.DB.Order("expiration asc").Find(&pantry, "uid = ?", user.ID)
+			// fmt.Println(pantry)
+			// c.HTML(200, "pantry", gin.H{"userobj": user, "pantry": pantry})
+			c.HTML(200, "recipe", gin.H{})
+			return
+		}
+		c.Redirect(http.StatusFound, "/login")
+	})
+
+	router.GET("/getPantry", func(c *gin.Context) {
+		message := authuser(c)
+		if message != nil {
+			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
 			user := models.User{}
 			pantry := []models.Ingredient{}
 			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
 			models.DB.Order("expiration asc").Find(&pantry, "uid = ?", user.ID)
 			fmt.Println(pantry)
-			c.HTML(200, "pantry", gin.H{"userobj": user, "pantry": pantry})
+			c.JSON(200, gin.H{"pantry": pantry})
 			return
 		}
-		c.Redirect(http.StatusFound, "/login")
 	})
 
 	router.GET("/additem", func(c *gin.Context) {
