@@ -6,6 +6,7 @@
 </style>
 <div class="container-fluid">
 
+    {{if .isMobile }}
     <br>
     <div class="row">
         <div class="col-4">
@@ -15,7 +16,6 @@
         </div>
     </div>
     <div class="row">
-        {{if .isMobile }}
         <div class="col-12">
             <form action="/login_user" method="POST">
                 <div class="form-group">
@@ -33,10 +33,20 @@
                 <a href="/" class="btn btn-primary" role="button">Back</a>
             </form>
         </div>
-        {{else }}
-        <div class="col-4">
+    </div>
+    {{else }}
+    <br>
+    <div class="row">
+        <div class="col-md-4">
         </div>
-        <div class="col-4">
+        <div class="col-md-4">
+            <h1>Login</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+        </div>
+        <div class="col-md-4">
             <form action="/login_user" method="POST">
                 <div class="form-group">
                     <label for="exampleInputEmail1">Email address</label>
@@ -53,8 +63,8 @@
                 <a href="/" class="btn btn-primary" role="button">Back</a>
             </form>
         </div>
-        {{end}}
     </div>
+    {{end}}
 </div>
 
 {{end}}

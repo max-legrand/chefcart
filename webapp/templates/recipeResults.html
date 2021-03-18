@@ -1,0 +1,18 @@
+{{ define "content" }}
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+
+<div class="container-fluid" id="recipeDiv">
+    <recipeobj>
+    </recipeobj>
+</div>
+
+<script>
+    let dataarray = {{.recipes }}
+</script>
+
+<script type="text/javascript" src="js/recipeResults.js"></script>
+
+<script type="text/javascript" src="js/sortTable.js"></script>
+
+{{end}}

@@ -7,6 +7,7 @@ package webapp
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -40,6 +41,7 @@ func tempRender() multitemplate.Renderer {
 	r.AddFromFiles("additem", "webapp/templates/base.html", "webapp/templates/additem.html")
 	r.AddFromFiles("edititem", "webapp/templates/base.html", "webapp/templates/edititem.html")
 	r.AddFromFiles("recipe", "webapp/templates/base.html", "webapp/templates/recipe.html")
+	r.AddFromFiles("recipeResults", "webapp/templates/base.html", "webapp/templates/recipeResults.html")
 	// r.AddFromFiles("about", "templates/base.html", "templates/about.html")
 	// r.AddFromFilesFuncs("about", template.FuncMap{"mod": func(i, j int) bool { return i%j == 0 }}, "templates/base.html", "templates/about.html")
 	return r
@@ -91,7 +93,6 @@ func LaunchServer() {
 		}
 		c.JSON(200, gin.H{"isMobile": isMobile})
 	})
-
 	// Present not found page
 	router.GET("/notfound/:type", func(c *gin.Context) {
 		// Get type url parameter
@@ -134,7 +135,7 @@ func LaunchServer() {
 		if len(users) == 0 {
 			user := models.User{Email: email, Password: newpass}
 			models.DB.Create(&user)
-			userinfo := models.UserInfo{Restirctions: []string{}, City: "", State: "", ID: int(user.ID)}
+			userinfo := models.UserInfo{Diets: []string{}, Intolerances: []string{}, City: "", State: "", ID: int(user.ID)}
 			models.DB.Create(&userinfo)
 			c.Redirect(http.StatusFound, "/")
 			return
@@ -181,7 +182,7 @@ func LaunchServer() {
 			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
 			models.DB.Where("ID = ?", user.ID).First(&userinfo)
 			fmt.Println(userinfo)
-			c.HTML(200, "edit", gin.H{"isMobile": isMobile, "userobj": user, "city": userinfo.City, "state": userinfo.State, "restrictions": userinfo.Restirctions})
+			c.HTML(200, "edit", gin.H{"isMobile": isMobile, "userobj": user, "city": userinfo.City, "state": userinfo.State, "diets": userinfo.Diets, "intolerances": userinfo.Intolerances})
 			return
 		}
 		c.Redirect(http.StatusFound, "/login")
@@ -195,8 +196,8 @@ func LaunchServer() {
 			password := c.PostForm("Password")
 			city := c.PostForm("City")
 			state := c.PostForm("State")
-			restricitons := c.PostFormArray("restrictions")
-			fmt.Println(restricitons)
+			diets := c.PostFormArray("diets")
+			intolerances := c.PostFormArray("intolerances")
 			// Hash and update password
 			data := []byte(password)
 			hash := md5.Sum(data)
@@ -209,7 +210,8 @@ func LaunchServer() {
 			user.Password = password
 			userinfo.City = city
 			userinfo.State = state
-			userinfo.Restirctions = restricitons
+			userinfo.Intolerances = intolerances
+			userinfo.Diets = diets
 			models.DB.Save(&user)
 			models.DB.Save(&userinfo)
 			// c.HTML(200, "edit", gin.H{"userobj": user, "city": userinfo.City, "state": userinfo.State, "restrictions": userinfo.Restirctions})
@@ -245,20 +247,121 @@ func LaunchServer() {
 	})
 
 	router.GET("/recipe", func(c *gin.Context) {
-		// Generate token
 		message := authuser(c)
 		if message != nil {
-			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
-			// user := models.User{}
-			// pantry := []models.Ingredient{}
-			// models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
-			// models.DB.Order("expiration asc").Find(&pantry, "uid = ?", user.ID)
-			// fmt.Println(pantry)
-			// c.HTML(200, "pantry", gin.H{"userobj": user, "pantry": pantry})
-			c.HTML(200, "recipe", gin.H{})
+			user := models.User{}
+			userinfo := models.UserInfo{}
+			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
+			models.DB.Where("ID = ?", user.ID).First(&userinfo)
+			fmt.Println(userinfo)
+			c.HTML(200, "recipe", gin.H{"diets": userinfo.Diets, "intolerances": userinfo.Intolerances})
 			return
 		}
 		c.Redirect(http.StatusFound, "/login")
+	})
+
+	router.POST("/recipeSearch", func(c *gin.Context) {
+
+		type myForm struct {
+			Ingredients           []string `form:"ingredients[]"`
+			AdditionalIngredients string   `form:"additionalIngredients"`
+			Diets                 []string `form:"diets"`
+			Intolerances          []string `form:"intolerances"`
+			Cuisine               []string `form:"cuisine"`
+		}
+
+		type recipe struct {
+			Name      string
+			ID        string
+			Used      string
+			Missing   string
+			ImageLink string
+		}
+
+		formData := myForm{}
+		c.ShouldBind(&formData)
+		ingredients := strings.Join(formData.Ingredients, ",")
+		if formData.AdditionalIngredients != "" && ingredients != "" {
+			ingredients += "," + formData.AdditionalIngredients
+		} else if formData.AdditionalIngredients != "" {
+			ingredients += formData.AdditionalIngredients
+		}
+		offset := 0
+		resultsSeen := 0
+
+		url := "https://api.spoonacular.com/recipes/complexSearch?intolerances=" + strings.Join(formData.Intolerances, ",") + "&includeIngredients=" + ingredients + "&number=10&offset=" + strconv.Itoa(offset) + "&diet=" + strings.Join(formData.Diets, ",") + "&cuisine=" + strings.Join(formData.Cuisine, ",") + "&apiKey=" + os.Getenv("APIKEY")
+		fmt.Println(url)
+		method := "GET"
+
+		client := &http.Client{}
+		req, err := http.NewRequest(method, url, nil)
+
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		res, err := client.Do(req)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer res.Body.Close()
+
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		jsonString := string(body)
+		totalResults := gjson.Get(jsonString, "totalResults").Int()
+		if totalResults > 10 {
+			totalResults = 10
+		}
+
+		results := []recipe{}
+
+		for resultsSeen < int(totalResults) {
+			for _, value := range gjson.Get(jsonString, "results").Array() {
+				resultsSeen++
+				results = append(results, recipe{
+					Name:      value.Get("title").String(),
+					ID:        value.Get("id").String(),
+					Used:      value.Get("usedIngredientCount").String(),
+					Missing:   value.Get("missedIngredientCount").String(),
+					ImageLink: value.Get("image").String(),
+				})
+			}
+			offset += 10
+			if resultsSeen >= int(totalResults) {
+				break
+			}
+			url := "https://api.spoonacular.com/recipes/complexSearch?intolerances=" + strings.Join(formData.Intolerances, ",") + "&includeIngredients=" + ingredients + "&number=10&offset=" + strconv.Itoa(offset) + "&diet=" + strings.Join(formData.Diets, ",") + "&cuisine=" + strings.Join(formData.Cuisine, ",") + "&apiKey=" + os.Getenv("APIKEY")
+			method := "GET"
+			fmt.Println(url)
+			client := &http.Client{}
+			req, err := http.NewRequest(method, url, nil)
+
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			res, err := client.Do(req)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			defer res.Body.Close()
+
+			body, err := ioutil.ReadAll(res.Body)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			jsonString = string(body)
+		}
+		resultJson, _ := json.Marshal(results)
+		fmt.Println(len(results))
+		c.HTML(http.StatusOK, "recipeResults", gin.H{"recipes": string(resultJson)})
 	})
 
 	router.GET("/getPantry", func(c *gin.Context) {
@@ -273,6 +376,22 @@ func LaunchServer() {
 			c.JSON(200, gin.H{"pantry": pantry})
 			return
 		}
+	})
+
+	router.GET("/getDietsIntol", func(c *gin.Context) {
+		message := authuser(c)
+		if message != nil {
+			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
+			user := models.User{}
+			userinfo := models.UserInfo{}
+			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
+			models.DB.Where("ID = ?", user.ID).First(&userinfo)
+			fmt.Println(user)
+			fmt.Println(userinfo)
+			c.JSON(200, gin.H{"Diets": userinfo.Diets, "Intolerances": userinfo.Intolerances})
+			return
+		}
+		c.JSON(200, gin.H{"Diets": []string{}, "Intolerances": []string{}})
 	})
 
 	router.GET("/additem", func(c *gin.Context) {

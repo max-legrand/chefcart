@@ -23,7 +23,8 @@ type UserInfo struct {
 	ID           int `gorm:"ForeignKey:ID"`
 	City         string
 	State        string
-	Restirctions pq.StringArray `gorm:"type:character varying[]"`
+	Diets        pq.StringArray `gorm:"type:character varying[]"`
+	Intolerances pq.StringArray `gorm:"type:character varying[]"`
 }
 
 // User ...

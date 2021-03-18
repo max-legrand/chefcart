@@ -6,17 +6,15 @@
     }
 </style>
 <div class="container-fluid">
-
+    {{if .isMobile }}
     <br>
     <div class="row">
-        <div class="col-4">
-        </div>
-        <div class="col-4">
+        <div class="col-12">
             <h1>Edit User</h1>
         </div>
     </div>
+
     <div class="row">
-        {{if .isMobile }}
         <div class="col-12">
             <form action="/edit_user" method="POST">
                 <div class="form-group">
@@ -88,19 +86,41 @@
                     </select>
                 </div>
                 <div class="form-group" style="width: 100% !important">
-                    <label for="restrictions">Dietary Restrictions</label>
+                    <label for="restrictions">Diets</label>
                     <br>
-                    <select style="width: 100% !important" id="restrictions" name="restrictions"
-                        class="selectpicker form-control" data-live-search=" true" data-selected-text-format="count > 4"
+                    <select style="width: 100% !important" id="diets" name="diets" class="selectpicker form-control"
+                        data-live-search=" true" data-selected-text-format="count > 3" multiple="multiple">
+                        <option value="Gluten Free">Gluten Free</option>
+                        <option value="Ketogenic">Ketogenic</option>
+                        <option value="Vegetarian">Vegetarian</option>
+                        <option value="Lacto-Vegetarian">Lacto-Vegetarian</option>
+                        <option value="Ovo-Vegetarian">Ovo-Vegetarian</option>
+                        <option value="Vegan">Vegan</option>
+                        <option value="Pescetarian">Pescetarian</option>
+                        <option value="Paleo">Paleo</option>
+                        <option value="Primal">Primal</option>
+                        <option value="Whole30">Whole30</option>
+                    </select>
+                </div>
+                <div class="form-group" style="width: 100% !important">
+                    <label for="restrictions">Intolerances</label>
+                    <br>
+                    <select style="width: 100% !important" id="intolerances" name="intolerances"
+                        class="selectpicker form-control" data-live-search=" true" data-selected-text-format="count > 3"
                         multiple="multiple">
-                        <option value="LI">Lactose Intolerance</option>
-                        <option value="V">Vegetarian</option>
-                        <option value="VG">Vegan</option>
-                        <option value="P">Peanut Allergy</option>
-                        <option value="S">Soybean Allergy</option>
-                        <option value="GF">Gluten Free</option>
-                        <option value="K">Kosher</option>
-                        <option value="H">Halal</option>
+                        <option value="Dairy">Dairy</option>
+                        <option value="Egg">Egg</option>
+                        <option value="Gluten">Gluten</option>
+                        <option value="Grain">Grain</option>
+                        <option value="Peanut">Peanut</option>
+                        <option value="Seafood">Seafood</option>
+                        <option value="Sesame">Sesame</option>
+                        <option value="Shellfish">Shellfish</option>
+                        <option value="Soy">Soy</option>
+                        <option value="Sulfite">Sulfite</option>
+                        <option value="Tree Nut">Tree Nut</option>
+                        <option value="Wheat">Wheat</option>
+                        </option>
                     </select>
                 </div>
                 <br>
@@ -108,10 +128,21 @@
                 <a class="btn btn-primary" href="/" role="button">Back</a>
             </form>
         </div>
-        {{else}}
-        <div class="col-4">
+        <br>
+    </div>
+    {{else}}
+    <br>
+    <div class="row">
+        <div class="col-md-4">
         </div>
-        <div class="col-4">
+        <div class="col-md-4">
+            <h1>Edit User</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+        </div>
+        <div class="col-md-4">
             <form action="/edit_user" method="POST">
                 <div class="form-group">
                     <label for="exampleInputEmail1">Email address: {{.userobj.Email}}</label>
@@ -182,19 +213,41 @@
                     </select>
                 </div>
                 <div class="form-group" style="width: 100% !important">
-                    <label for="restrictions">Dietary Restrictions</label>
+                    <label for="restrictions">Diets</label>
                     <br>
-                    <select style="width: 100% !important" id="restrictions" name="restrictions"
-                        class="selectpicker form-control" data-live-search=" true" data-selected-text-format="count > 4"
+                    <select style="width: 100% !important" id="diets" name="diets" class="selectpicker form-control"
+                        data-live-search=" true" data-selected-text-format="count > 3" multiple="multiple">
+                        <option value="Gluten Free">Gluten Free</option>
+                        <option value="Ketogenic">Ketogenic</option>
+                        <option value="Vegetarian">Vegetarian</option>
+                        <option value="Lacto-Vegetarian">Lacto-Vegetarian</option>
+                        <option value="Ovo-Vegetarian">Ovo-Vegetarian</option>
+                        <option value="Vegan">Vegan</option>
+                        <option value="Pescetarian">Pescetarian</option>
+                        <option value="Paleo">Paleo</option>
+                        <option value="Primal">Primal</option>
+                        <option value="Whole30">Whole30</option>
+                    </select>
+                </div>
+                <div class="form-group" style="width: 100% !important">
+                    <label for="restrictions">Intolerances</label>
+                    <br>
+                    <select style="width: 100% !important" id="intolerances" name="intolerances"
+                        class="selectpicker form-control" data-live-search=" true" data-selected-text-format="count > 3"
                         multiple="multiple">
-                        <option value="LI">Lactose Intolerance</option>
-                        <option value="V">Vegetarian</option>
-                        <option value="VG">Vegan</option>
-                        <option value="P">Peanut Allergy</option>
-                        <option value="S">Soybean Allergy</option>
-                        <option value="GF">Gluten Free</option>
-                        <option value="K">Kosher</option>
-                        <option value="H">Halal</option>
+                        <option value="Dairy">Dairy</option>
+                        <option value="Egg">Egg</option>
+                        <option value="Gluten">Gluten</option>
+                        <option value="Grain">Grain</option>
+                        <option value="Peanut">Peanut</option>
+                        <option value="Seafood">Seafood</option>
+                        <option value="Sesame">Sesame</option>
+                        <option value="Shellfish">Shellfish</option>
+                        <option value="Soy">Soy</option>
+                        <option value="Sulfite">Sulfite</option>
+                        <option value="Tree Nut">Tree Nut</option>
+                        <option value="Wheat">Wheat</option>
+                        </option>
                     </select>
                 </div>
                 <br>
@@ -209,15 +262,19 @@
 <script>
     $(document).ready(function () {
         console.log("ready!");
-        console.log("{{.restrictions}}");
         $('#stateselect').selectpicker()
         $('#stateselect').val('{{.state}}')
         $('#stateselect').selectpicker("refresh")
-        $('#restrictions').selectpicker();
-        let dataarray = "{{.restrictions}}".substring(1, "{{.restrictions}}".length - 1).split(" ")
+        $('#diets').selectpicker();
+        $('#intolerances').selectpicker();
+        let dataarray = "{{.diets}}".substring(1, "{{.diets}}".length - 1).split(" ")
         console.log(dataarray);
-        $('#restrictions').val(dataarray)
-        $('#restrictions').selectpicker("refresh");
+        $('#diets').val(dataarray)
+        $('#diets').selectpicker("refresh");
+        let dataarray2 = "{{.intolerances}}".substring(1, "{{.intolerances}}".length - 1).split(" ")
+        console.log(dataarray2);
+        $('#intolerances').val(dataarray2)
+        $('#intolerances').selectpicker("refresh");
     });
 </script>
 
