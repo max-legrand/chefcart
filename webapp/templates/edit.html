@@ -13,13 +13,13 @@
             <h1>Edit User</h1>
         </div>
     </div>
-
     <div class="row">
         <div class="col-12">
             <form action="/edit_user" method="POST">
                 <div class="form-group">
                     <label for="exampleInputEmail1">Email address: {{.userobj.Email}}</label>
                 </div>
+                <input type="hidden" name="Email" value="{{.userobj.Email}}">
                 <div class="form-group">
                     <label for="exampleInputPassword1">Password</label>
                     <input name="Password" type="password" class="form-control" id="exampleInputPassword1"
@@ -123,6 +123,12 @@
                         </option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label for="QuantityThreshold">Quantity Threshold Alert</label>
+                    <input name="QuantityThreshold" type="float" class="form-control" id="QuantityThreshold"
+                        value="{{.userinfo.QuantityThreshold}}" step="0.01" min="-1" type="number" required>
+                    <small id="QuantityThresholdHelp" class="form-text text-muted">Set to -1 for no alert</small>
+                </div>
                 <br>
                 <button type="submit" class="btn btn-primary">Submit</button>
                 <a class="btn btn-primary" href="/" role="button">Back</a>
@@ -130,6 +136,7 @@
         </div>
         <br>
     </div>
+
     {{else}}
     <br>
     <div class="row">
@@ -147,6 +154,7 @@
                 <div class="form-group">
                     <label for="exampleInputEmail1">Email address: {{.userobj.Email}}</label>
                 </div>
+                <input type="hidden" name="Email" value="{{.userobj.Email}}">
                 <div class="form-group">
                     <label for="exampleInputPassword1">Password</label>
                     <input name="Password" type="password" class="form-control" id="exampleInputPassword1"
@@ -249,6 +257,12 @@
                         <option value="Wheat">Wheat</option>
                         </option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label for="QuantityThreshold">Quantity Threshold Alert</label>
+                    <input name="QuantityThreshold" type="float" class="form-control" id="QuantityThreshold"
+                        value="{{.userinfo.QuantityThreshold}}" step="0.01" min="-1" type="number" required>
+                    <small id="QuantityThresholdHelp" class="form-text text-muted">Set to -1 for no alert</small>
                 </div>
                 <br>
                 <button type="submit" class="btn btn-primary">Submit</button>

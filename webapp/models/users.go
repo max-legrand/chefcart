@@ -20,11 +20,12 @@ import (
 
 // UserInfo ...
 type UserInfo struct {
-	ID           int `gorm:"ForeignKey:ID"`
-	City         string
-	State        string
-	Diets        pq.StringArray `gorm:"type:character varying[]"`
-	Intolerances pq.StringArray `gorm:"type:character varying[]"`
+	ID                int `gorm:"ForeignKey:ID"`
+	City              string
+	State             string
+	Diets             pq.StringArray `gorm:"type:character varying[]"`
+	Intolerances      pq.StringArray `gorm:"type:character varying[]"`
+	QuantityThreshold float64
 }
 
 // User ...
@@ -34,7 +35,7 @@ type User struct {
 	Password string
 }
 
-// Ingredient...
+// Ingredient ...
 type Ingredient struct {
 	gorm.Model
 	UID uint `gorm:"ForeignKey:ID"`

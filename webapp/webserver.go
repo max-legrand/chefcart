@@ -5,6 +5,7 @@ Package webapp ...
 package webapp
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -16,6 +17,7 @@ import (
 	"main/webapp/models"
 	"main/webapp/protobuf"
 	"main/webapp/service"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"strconv"
@@ -26,6 +28,7 @@ import (
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
+	ginsession "github.com/go-session/gin-session"
 	"github.com/tidwall/gjson"
 	"google.golang.org/protobuf/proto"
 )
@@ -56,6 +59,7 @@ func LaunchServer() {
 
 	// Router & Template Setup
 	router := gin.Default()
+	router.Use(ginsession.New())
 	router.HTMLRender = tempRender()
 	router.Use(static.Serve("/js", static.LocalFile("webapp/templates/js", true)))
 	// Intiialize SQLite DB
@@ -124,8 +128,8 @@ func LaunchServer() {
 
 	// NOTE : signup user logic
 	router.POST("/signup_user", func(c *gin.Context) {
-		email := c.PostForm("email")
-		password := c.PostForm("password")
+		email := c.PostForm("Email")
+		password := c.PostForm("Password")
 		fmt.Println(email)
 		data := []byte(password)
 		hash := md5.Sum(data)
@@ -135,10 +139,9 @@ func LaunchServer() {
 		if len(users) == 0 {
 			user := models.User{Email: email, Password: newpass}
 			models.DB.Create(&user)
-			userinfo := models.UserInfo{Diets: []string{}, Intolerances: []string{}, City: "", State: "", ID: int(user.ID)}
+			userinfo := models.UserInfo{QuantityThreshold: -1, Diets: []string{}, Intolerances: []string{}, City: "", State: "", ID: int(user.ID)}
 			models.DB.Create(&userinfo)
-			c.Redirect(http.StatusFound, "/")
-			return
+			getLoginToken(loginController, c)
 		}
 		c.Redirect(http.StatusFound, "/notfound/signup")
 	})
@@ -146,24 +149,10 @@ func LaunchServer() {
 	// NOTE : user login logic
 	router.POST("/login_user", func(c *gin.Context) {
 		// Generate token
-		token := loginController.Login(c)
-		if token != "" {
-			encToken := middleware.Encrypt(token)
-			// Set token to cookie & send back home
-			message := &protobuf.Token{Token: encToken}
-			data, err := proto.Marshal(message)
-			stringarray := fmt.Sprint(data)
-			stringarray = stringarray[1 : len(stringarray)-1]
-			fmt.Println(stringarray)
-			if err != nil {
-				log.Fatal("marshaling error: ", err)
-			}
-
-			c.SetCookie("token", stringarray, 48*60, "/", "", false, false)
-			c.Redirect(http.StatusFound, "/")
-			return
+		token := getLoginToken(loginController, c)
+		if token == "" {
+			c.Redirect(http.StatusFound, "/notfound/login")
 		}
-		c.Redirect(http.StatusFound, "/notfound/login")
 	})
 
 	// NOTE : edit user info logic
@@ -182,7 +171,7 @@ func LaunchServer() {
 			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
 			models.DB.Where("ID = ?", user.ID).First(&userinfo)
 			fmt.Println(userinfo)
-			c.HTML(200, "edit", gin.H{"isMobile": isMobile, "userobj": user, "city": userinfo.City, "state": userinfo.State, "diets": userinfo.Diets, "intolerances": userinfo.Intolerances})
+			c.HTML(200, "edit", gin.H{"isMobile": isMobile, "userobj": user, "userinfo": userinfo, "city": userinfo.City, "state": userinfo.State, "diets": userinfo.Diets, "intolerances": userinfo.Intolerances})
 			return
 		}
 		c.Redirect(http.StatusFound, "/login")
@@ -198,6 +187,10 @@ func LaunchServer() {
 			state := c.PostForm("State")
 			diets := c.PostFormArray("diets")
 			intolerances := c.PostFormArray("intolerances")
+			quantityThreshold, _ := strconv.ParseFloat(c.PostForm("QuantityThreshold"), 64)
+			if quantityThreshold < 0 {
+				quantityThreshold = -1.0
+			}
 			// Hash and update password
 			data := []byte(password)
 			hash := md5.Sum(data)
@@ -212,11 +205,13 @@ func LaunchServer() {
 			userinfo.State = state
 			userinfo.Intolerances = intolerances
 			userinfo.Diets = diets
+			userinfo.QuantityThreshold = quantityThreshold
 			models.DB.Save(&user)
 			models.DB.Save(&userinfo)
-			// c.HTML(200, "edit", gin.H{"userobj": user, "city": userinfo.City, "state": userinfo.State, "restrictions": userinfo.Restirctions})
-			c.Redirect(http.StatusFound, "/")
+			c.SetCookie("token", "", -1, "/", "", false, false)
+			getLoginToken(loginController, c)
 			return
+			// c.HTML(200, "edit", gin.H{"userobj": user, "city": userinfo.City, "state": userinfo.State, "restrictions": userinfo.Restirctions})
 		}
 		c.Redirect(http.StatusFound, "/login")
 	})
@@ -233,6 +228,13 @@ func LaunchServer() {
 		// Generate token
 		message := authuser(c)
 		if message != nil {
+			store := ginsession.FromContext(c)
+			foodName, found := store.Get("invalidFood")
+			if !found {
+				foodName = ""
+			}
+			store.Delete("invalidFood")
+			store.Save()
 			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
 			// user := models.User{}
 			// pantry := []models.Ingredient{}
@@ -240,7 +242,7 @@ func LaunchServer() {
 			// models.DB.Order("expiration asc").Find(&pantry, "uid = ?", user.ID)
 			// fmt.Println(pantry)
 			// c.HTML(200, "pantry", gin.H{"userobj": user, "pantry": pantry})
-			c.HTML(200, "pantry", gin.H{})
+			c.HTML(200, "pantry", gin.H{"foodName": foodName.(string)})
 			return
 		}
 		c.Redirect(http.StatusFound, "/login")
@@ -359,9 +361,9 @@ func LaunchServer() {
 			}
 			jsonString = string(body)
 		}
-		resultJson, _ := json.Marshal(results)
+		resultJSON, _ := json.Marshal(results)
 		fmt.Println(len(results))
-		c.HTML(http.StatusOK, "recipeResults", gin.H{"recipes": string(resultJson)})
+		c.HTML(http.StatusOK, "recipeResults", gin.H{"recipes": string(resultJSON)})
 	})
 
 	router.GET("/getPantry", func(c *gin.Context) {
@@ -374,6 +376,19 @@ func LaunchServer() {
 			models.DB.Order("expiration asc").Find(&pantry, "uid = ?", user.ID)
 			fmt.Println(pantry)
 			c.JSON(200, gin.H{"pantry": pantry})
+			return
+		}
+	})
+
+	router.GET("/getUserinfo", func(c *gin.Context) {
+		message := authuser(c)
+		if message != nil {
+			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
+			user := models.User{}
+			userinfo := models.UserInfo{}
+			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
+			models.DB.Where("ID = ?", user.ID).First(&userinfo)
+			c.JSON(200, gin.H{"userinfo": userinfo})
 			return
 		}
 	})
@@ -415,6 +430,51 @@ func LaunchServer() {
 				}
 			}
 			name := strings.Title(strings.ToLower(c.PostForm("Name")))
+
+			url := "https://spoonacular.com/api/tagFoods"
+			method := "POST"
+
+			payload := &bytes.Buffer{}
+			writer := multipart.NewWriter(payload)
+			_ = writer.WriteField("text", name)
+			err := writer.Close()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			client := &http.Client{}
+			req, err := http.NewRequest(method, url, payload)
+
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			req.Header.Set("Content-Type", writer.FormDataContentType())
+			res, err := client.Do(req)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			defer res.Body.Close()
+
+			body, err := ioutil.ReadAll(res.Body)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			fmt.Println(string(body))
+			jsonString := string(body)
+
+			if len(gjson.Get(jsonString, "annotations").Array()) == 0 {
+				store := ginsession.FromContext(c)
+				store.Set("invalidFood", name)
+				store.Save()
+				c.Redirect(http.StatusFound, "/pantry")
+				return
+			}
+
 			quantity := c.PostForm("Quantity")
 			if quantity == "0" {
 				quantity = "N/A"
@@ -646,6 +706,26 @@ func invalidDate(dateString string) bool {
 	dateString = dateString[daysplit+1:]
 	_, err = strconv.Atoi(dateString)
 	return err != nil
+}
+
+func getLoginToken(loginController controller.LoginController, c *gin.Context) string {
+	token := loginController.Login(c)
+	if token != "" {
+		encToken := middleware.Encrypt(token)
+		// Set token to cookie & send back home
+		message := &protobuf.Token{Token: encToken}
+		data, err := proto.Marshal(message)
+		stringarray := fmt.Sprint(data)
+		stringarray = stringarray[1 : len(stringarray)-1]
+		fmt.Println(stringarray)
+		if err != nil {
+			log.Fatal("marshaling error: ", err)
+		}
+
+		c.SetCookie("token", stringarray, 60*60*24, "/", "", false, false)
+		c.Redirect(http.StatusFound, "/")
+	}
+	return token
 }
 
 func authuser(c *gin.Context) *jwt.Token {
