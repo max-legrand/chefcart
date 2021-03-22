@@ -6,6 +6,7 @@ package webapp
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -15,21 +16,25 @@ import (
 	"main/webapp/controller"
 	"main/webapp/middleware"
 	"main/webapp/models"
-	"main/webapp/protobuf"
+	Tokens "main/webapp/protobuf"
 	"main/webapp/service"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	mobile "github.com/floresj/go-contrib-mobile"
 	"github.com/gin-contrib/multitemplate"
+	"github.com/gin-gonic/contrib/cors"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	ginsession "github.com/go-session/gin-session"
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/tidwall/gjson"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -50,18 +55,107 @@ func tempRender() multitemplate.Renderer {
 	return r
 }
 
+// Server ...
+type Server struct {
+	Tokens.UnimplementedServerServer
+}
+
+// NewServer ...
+func NewServer() *Server {
+	s := &Server{}
+	return s
+}
+
+// AuthUser ...
+func (c *Server) AuthUser(ctx context.Context, in *Tokens.Token) (*Tokens.Token, error) {
+	token, valid := middleware.ValidTokenGRPC(in)
+	if valid {
+		isUserAuthenticated, _ := service.LoginUser(token.Claims.(jwt.MapClaims)["name"].(string), token.Claims.(jwt.MapClaims)["pass"].(string))
+		if isUserAuthenticated {
+			return &Tokens.Token{Token: token.Claims.(jwt.MapClaims)["name"].(string)}, nil
+		}
+
+	}
+	return &Tokens.Token{}, nil
+}
+
+// GetPantry ...
+func (c *Server) GetPantry(ctx context.Context, in *Tokens.Token) (*Tokens.Pantry, error) {
+	token, valid := middleware.ValidTokenGRPC(in)
+	if valid {
+		// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
+		user := models.User{}
+		pantry := []models.Ingredient{}
+		models.DB.Where("email = ?", token.Claims.(jwt.MapClaims)["name"]).First(&user)
+		models.DB.Order("expiration asc").Find(&pantry, "uid = ?", user.ID)
+		fmt.Println(pantry)
+		result := Tokens.Pantry{Pantry: []*Tokens.Ingredient{}}
+
+		for _, item := range pantry {
+			result.Pantry = append(result.Pantry, &Tokens.Ingredient{
+				Id:         int64(item.ID),
+				UID:        uint64(item.UID),
+				Name:       item.Name,
+				Quantity:   item.Quantity,
+				Weight:     item.Weight,
+				Volume:     item.Volume,
+				Expiration: item.Expiration,
+				ImageLink:  item.ImageLink,
+			})
+		}
+		return &result, nil
+	}
+	return &Tokens.Pantry{}, nil
+}
+
+// GetUserInfo ...
+func (c *Server) GetUserInfo(ctx context.Context, in *Tokens.Token) (*Tokens.UserInfo, error) {
+	token, valid := middleware.ValidTokenGRPC(in)
+	if valid {
+		user := models.User{}
+		userinfo := models.UserInfo{}
+		models.DB.Where("email = ?", token.Claims.(jwt.MapClaims)["name"]).First(&user)
+		models.DB.Where("ID = ?", user.ID).First(&userinfo)
+		result := Tokens.UserInfo{
+			City:              userinfo.City,
+			State:             userinfo.State,
+			Diets:             userinfo.Diets,
+			Intolerances:      userinfo.Intolerances,
+			QuantityThreshold: float32(userinfo.QuantityThreshold),
+		}
+		return &result, nil
+	}
+	return &Tokens.UserInfo{}, nil
+
+}
+
 // LaunchServer ...
 func LaunchServer() {
 
 	// JWT login setup
 	jwtService := service.JWTAuthService()
 	loginController := controller.LoginHandler(jwtService)
+	s := grpc.NewServer()
+	customServer := NewServer()
+	Tokens.RegisterServerServer(s, customServer)
+	wrappedGrpc := grpcweb.WrapServer(s, grpcweb.WithOriginFunc(func(origin string) bool {
+		return true
+	}))
 
 	// Router & Template Setup
 	router := gin.Default()
 	router.Use(ginsession.New())
 	router.HTMLRender = tempRender()
 	router.Use(static.Serve("/js", static.LocalFile("webapp/templates/js", true)))
+	router.Use(middleware.GinGrpcWebMiddleware(wrappedGrpc))
+	router.Use(cors.New(cors.Config{
+		AllowedOrigins:   []string{"http://localhost:8080"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-GRPC-WEB"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           time.Duration(300) * time.Second,
+	}))
 	// Intiialize SQLite DB
 	models.ConnectDB()
 	router.Use(mobile.Resolver())
@@ -77,26 +171,6 @@ func LaunchServer() {
 		c.HTML(200, "index", gin.H{})
 	})
 
-	// API call to determine if user is valid
-	router.GET("/authuser", func(c *gin.Context) {
-		// Check cookie value is set and if cookie corresponds to valid JWT
-		message := authuser(c)
-		if message != nil {
-			c.JSON(200, gin.H{"token": message})
-			return
-		}
-		c.JSON(200, gin.H{"token": ""})
-	})
-
-	router.GET("/isMobile", func(c *gin.Context) {
-		// Check cookie value is set and if cookie corresponds to valid JWT
-		d := mobile.GetDevice(c)
-		isMobile := false
-		if d.Mobile() {
-			isMobile = true
-		}
-		c.JSON(200, gin.H{"isMobile": isMobile})
-	})
 	// Present not found page
 	router.GET("/notfound/:type", func(c *gin.Context) {
 		// Get type url parameter
@@ -364,49 +438,6 @@ func LaunchServer() {
 		resultJSON, _ := json.Marshal(results)
 		fmt.Println(len(results))
 		c.HTML(http.StatusOK, "recipeResults", gin.H{"recipes": string(resultJSON)})
-	})
-
-	router.GET("/getPantry", func(c *gin.Context) {
-		message := authuser(c)
-		if message != nil {
-			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
-			user := models.User{}
-			pantry := []models.Ingredient{}
-			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
-			models.DB.Order("expiration asc").Find(&pantry, "uid = ?", user.ID)
-			fmt.Println(pantry)
-			c.JSON(200, gin.H{"pantry": pantry})
-			return
-		}
-	})
-
-	router.GET("/getUserinfo", func(c *gin.Context) {
-		message := authuser(c)
-		if message != nil {
-			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
-			user := models.User{}
-			userinfo := models.UserInfo{}
-			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
-			models.DB.Where("ID = ?", user.ID).First(&userinfo)
-			c.JSON(200, gin.H{"userinfo": userinfo})
-			return
-		}
-	})
-
-	router.GET("/getDietsIntol", func(c *gin.Context) {
-		message := authuser(c)
-		if message != nil {
-			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
-			user := models.User{}
-			userinfo := models.UserInfo{}
-			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
-			models.DB.Where("ID = ?", user.ID).First(&userinfo)
-			fmt.Println(user)
-			fmt.Println(userinfo)
-			c.JSON(200, gin.H{"Diets": userinfo.Diets, "Intolerances": userinfo.Intolerances})
-			return
-		}
-		c.JSON(200, gin.H{"Diets": []string{}, "Intolerances": []string{}})
 	})
 
 	router.GET("/additem", func(c *gin.Context) {
@@ -686,7 +717,7 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
-	router.Run()
+	router.Run(":8080")
 }
 
 func invalidDate(dateString string) bool {
@@ -713,7 +744,7 @@ func getLoginToken(loginController controller.LoginController, c *gin.Context) s
 	if token != "" {
 		encToken := middleware.Encrypt(token)
 		// Set token to cookie & send back home
-		message := &protobuf.Token{Token: encToken}
+		message := &Tokens.Token{Token: encToken}
 		data, err := proto.Marshal(message)
 		stringarray := fmt.Sprint(data)
 		stringarray = stringarray[1 : len(stringarray)-1]
