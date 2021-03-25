@@ -35,11 +35,18 @@ type User struct {
 	Password string
 }
 
+// Grocery ...
+type Grocery struct {
+	gorm.Model
+	UID       uint `gorm:"ForeignKey:ID"`
+	Name      string
+	ImageLink string
+}
+
 // Ingredient ...
 type Ingredient struct {
 	gorm.Model
-	UID uint `gorm:"ForeignKey:ID"`
-	// Ingredients will be in form "<NAME>|<QUANTITY>|<WEIGHT>|<VOLUME>|<EXPIRATION>"
+	UID        uint `gorm:"ForeignKey:ID"`
 	Name       string
 	Quantity   string
 	Weight     string
@@ -74,8 +81,6 @@ func ConnectDB() {
 		panic("Failed to connect to DB")
 	}
 
-	database.AutoMigrate(&User{}, &UserInfo{}, &Ingredient{})
-	// database.Model(&User{}).AddForeignKey("UserInfoObj", "user_infos(id)", "cascade", "cascade")
-	// database.Model(&Ingredient{}).AddForeignKey("UserObj", "users(id)", "cascade", "cascade")
+	database.AutoMigrate(&User{}, &UserInfo{}, &Ingredient{}, &Grocery{})
 	DB = database
 }

@@ -1,0 +1,22 @@
+{{ define "content" }}
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+<style>
+    a {
+        text-decoration: none !important;
+    }
+</style>
+<div class="container-fluid" id="pantryDiv">
+
+    <grocery></grocery>
+
+</div>
+
+<script>
+    let foodName = "{{.foodName}}"
+</script>
+
+<script type="text/javascript" src="js/dist/grocery.js"></script>
+
+<script type="text/javascript" src="js/sortTable.js"></script>
+
+{{end}}

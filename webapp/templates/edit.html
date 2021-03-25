@@ -7,7 +7,6 @@
 </style>
 <div class="container-fluid">
     {{if .isMobile }}
-    <br>
     <div class="row">
         <div class="col-12">
             <h1>Edit User</h1>
@@ -15,7 +14,7 @@
     </div>
     <div class="row">
         <div class="col-12">
-            <form action="/edit_user" method="POST">
+            <form id="myform" action="/edit_user" method="POST">
                 <div class="form-group">
                     <label for="exampleInputEmail1">Email address: {{.userobj.Email}}</label>
                 </div>
@@ -129,17 +128,16 @@
                         value="{{.userinfo.QuantityThreshold}}" step="0.01" min="-1" type="number" required>
                     <small id="QuantityThresholdHelp" class="form-text text-muted">Set to -1 for no alert</small>
                 </div>
-                <br>
                 <button type="submit" class="btn btn-primary">Submit</button>
                 <a class="btn btn-primary" href="/" role="button">Back</a>
             </form>
+            <br>
         </div>
         <br>
     </div>
 
     {{else}}
-    <br>
-    <div class="row">
+    <div style="margin-top: 10px" class="row">
         <div class="col-md-4">
         </div>
         <div class="col-md-4">
@@ -150,7 +148,7 @@
         <div class="col-md-4">
         </div>
         <div class="col-md-4">
-            <form action="/edit_user" method="POST">
+            <form id="myform" action="/edit_user" method="POST">
                 <div class="form-group">
                     <label for="exampleInputEmail1">Email address: {{.userobj.Email}}</label>
                 </div>
@@ -264,7 +262,6 @@
                         value="{{.userinfo.QuantityThreshold}}" step="0.01" min="-1" type="number" required>
                     <small id="QuantityThresholdHelp" class="form-text text-muted">Set to -1 for no alert</small>
                 </div>
-                <br>
                 <button type="submit" class="btn btn-primary">Submit</button>
                 <a class="btn btn-primary" href="/" role="button">Back</a>
             </form>
@@ -274,6 +271,41 @@
 </div>
 
 <script>
+
+    $('#myform').bind('submit', function (e) {
+        e.preventDefault()
+        let city = $("#city").val()
+        let state = $("#stateselect").val()
+        let url = "http://api.geonames.org/postalCodeSearchJSON?username=malaow3&placename=" + city + ", " + state + "&placename_startsWith=" + city + "&maxRows=1&countryBias=US"
+
+        var requestOptions = {
+            method: 'GET',
+            redirect: 'follow'
+        };
+
+        fetch(url, requestOptions)
+            .then(response => response.text())
+            .then(result => {
+                console.log(result)
+                let json = JSON.parse(result)
+                let codes = json["postalCodes"]
+                console.log(codes)
+                if (codes.length > 0) {
+                    this.submit()
+                }
+                // if (result["postalCodes"].length > 0) {
+                //     isValid = true
+                // }
+                // alert("pausing")
+                // if (!isValid) {
+                //     alert("Please enter a valid location")
+                //     e.preventDefault();
+                // }
+            })
+            .catch(error => console.log('error', error));
+
+    });
+
     $(document).ready(function () {
         console.log("ready!");
         $('#stateselect').selectpicker()
