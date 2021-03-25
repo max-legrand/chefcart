@@ -1,3 +1,6 @@
+// Sort table based on columns 
+// Triggered by column header click 
+
 function sortTable(n) {
     var table,
         rows,

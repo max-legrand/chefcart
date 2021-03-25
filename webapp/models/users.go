@@ -18,7 +18,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-// UserInfo ...
+// UserInfo - struct for maintaining additional user information
 type UserInfo struct {
 	ID                int `gorm:"ForeignKey:ID"`
 	City              string
@@ -28,18 +28,17 @@ type UserInfo struct {
 	QuantityThreshold float64
 }
 
-// User ...
+// User - struct to represent user object
 type User struct {
 	gorm.Model
 	Email    string
 	Password string
 }
 
-// Ingredient ...
+// Ingredient - struct to represent a pantry ingredient
 type Ingredient struct {
 	gorm.Model
-	UID uint `gorm:"ForeignKey:ID"`
-	// Ingredients will be in form "<NAME>|<QUANTITY>|<WEIGHT>|<VOLUME>|<EXPIRATION>"
+	UID        uint `gorm:"ForeignKey:ID"`
 	Name       string
 	Quantity   string
 	Weight     string
@@ -51,7 +50,7 @@ type Ingredient struct {
 // DB ...
 var DB *gorm.DB
 
-// ConnectDB ...
+// ConnectDB - connect to the database and update the global database variable
 func ConnectDB() {
 	godotenv.Load(".env")
 	// database, err := gorm.Open("sqlite3", "test.db")
@@ -75,7 +74,5 @@ func ConnectDB() {
 	}
 
 	database.AutoMigrate(&User{}, &UserInfo{}, &Ingredient{})
-	// database.Model(&User{}).AddForeignKey("UserInfoObj", "user_infos(id)", "cascade", "cascade")
-	// database.Model(&Ingredient{}).AddForeignKey("UserObj", "users(id)", "cascade", "cascade")
 	DB = database
 }

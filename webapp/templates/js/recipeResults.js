@@ -1,5 +1,4 @@
-// Create a Vue application
-// const app = Vue.createApp({})
+// Pull results and generate dynamic content for recipe data
 
 // Define a new global component called button-counter
 Vue.component('recipeobj', {

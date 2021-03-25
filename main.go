@@ -12,5 +12,4 @@ import (
 func main() {
 	fmt.Println("Starting up...")
 	webapp.LaunchServer()
-	// webapp.Prototest()
 }

@@ -1,3 +1,7 @@
+/*
+Package middleware ...
+	Used for integrating the GRPC server with the gin library
+*/
 package middleware
 
 import (
@@ -7,10 +11,12 @@ import (
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 )
 
+// GrpcWebMiddleware ...
 type GrpcWebMiddleware struct {
 	*grpcweb.WrappedGrpcServer
 }
 
+// GinGrpcWebMiddleware ...
 func GinGrpcWebMiddleware(m *grpcweb.WrappedGrpcServer) gin.HandlerFunc {
 
 	return func(context *gin.Context) {
@@ -21,29 +27,4 @@ func GinGrpcWebMiddleware(m *grpcweb.WrappedGrpcServer) gin.HandlerFunc {
 			context.Next()
 		}
 	}
-}
-func (m *GrpcWebMiddleware) Handler2() gin.HandlerFunc {
-
-	return func(c *gin.Context) {
-		if m.IsAcceptableGrpcCorsRequest(c.Request) || m.IsGrpcWebRequest(c.Request) {
-			m.ServeHTTP(c.Writer, c.Request)
-			return
-		}
-
-		c.Next()
-	}
-}
-
-func (m *GrpcWebMiddleware) Handler(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if m.IsAcceptableGrpcCorsRequest(r) || m.IsGrpcWebRequest(r) {
-			m.ServeHTTP(w, r)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
-}
-
-func NewGrpcWebMiddleware(grpcWeb *grpcweb.WrappedGrpcServer) *GrpcWebMiddleware {
-	return &GrpcWebMiddleware{grpcWeb}
 }

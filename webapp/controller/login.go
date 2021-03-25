@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// LoginCredentials ...
+// LoginCredentials - struct to hold form data
 type LoginCredentials struct {
 	Email    string `form:"Email"`
 	Password string `form:"Password"`
@@ -35,6 +35,8 @@ func LoginHandler(jWtService service.JWTService) LoginController {
 	}
 }
 
+// Login - parse form data from context
+// Returns {string} - jwt token if user credentials are valid, empty string if invalid
 func (controller *loginController) Login(ctx *gin.Context) string {
 	// Gets login form information and binds to struct
 	var credential LoginCredentials

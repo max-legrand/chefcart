@@ -25,7 +25,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// Decrypt ...
+// Decrypt - decrypt token string into jwt token
 func Decrypt(encryptedString string) (decryptedString string) {
 	godotenv.Load(".env")
 	SECRET := os.Getenv("SECRET")
@@ -60,7 +60,7 @@ func Decrypt(encryptedString string) (decryptedString string) {
 	return fmt.Sprintf("%s", plaintext)
 }
 
-// Encrypt ...
+// Encrypt - encrypt jwt string into new token
 func Encrypt(stringToEncrypt string) (encryptedString string) {
 	godotenv.Load(".env")
 	key, _ := hex.DecodeString(os.Getenv("SECRET"))
@@ -85,10 +85,12 @@ func Encrypt(stringToEncrypt string) (encryptedString string) {
 	return fmt.Sprintf("%x", ciphertext)
 }
 
-// GenBytes ...
-func GenBytes(data string) []byte {
+// GenBytes - turn bytes string into array of bytes
+// data = bytes string to convert to array
+// separator = separator to split string by
+func GenBytes(data string, separator string) []byte {
 	bytes := []byte{}
-	stringvals := strings.Split(data, " ")
+	stringvals := strings.Split(data, separator)
 	for index := 0; index < len(stringvals); index++ {
 		value, err := strconv.Atoi(stringvals[index])
 		if err != nil {
@@ -99,20 +101,7 @@ func GenBytes(data string) []byte {
 	return bytes
 }
 
-func GenBytesGRPC(data string) []byte {
-	bytes := []byte{}
-	stringvals := strings.Split(data, "+")
-	for index := 0; index < len(stringvals); index++ {
-		value, err := strconv.Atoi(stringvals[index])
-		if err != nil {
-			return nil
-		}
-		bytes = append(bytes, byte(value))
-	}
-	return bytes
-}
-
-// ValidToken ...
+// ValidToken - determine if jwt token is valid
 func ValidToken(c *gin.Context) (*jwt.Token, bool) {
 	// Get token from cookie and check if valid
 	prototoken := &Tokens.Token{}
@@ -120,7 +109,7 @@ func ValidToken(c *gin.Context) (*jwt.Token, bool) {
 	if err != nil {
 		return nil, false
 	}
-	databytes := GenBytes(cookiedata)
+	databytes := GenBytes(cookiedata, " ")
 	if databytes == nil || len(databytes) == 0 {
 		return nil, false
 	}
@@ -143,11 +132,13 @@ func ValidToken(c *gin.Context) (*jwt.Token, bool) {
 
 }
 
-// ValidTokenGRPC ...
+// ValidTokenGRPC - determine if jwt token is valid.
+// Identical in function to ValidToken
+// Takes protobuf Token object as input instead of gin context pointer
 func ValidTokenGRPC(tokenInput *Tokens.Token) (*jwt.Token, bool) {
 	encTokenString := tokenInput.Token
 	fmt.Println(encTokenString)
-	databytes := GenBytesGRPC(encTokenString)
+	databytes := GenBytes(encTokenString, "+")
 	if databytes == nil || len(databytes) == 0 {
 		return nil, false
 	}

@@ -38,6 +38,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// Layers base template with relevant files
 func tempRender() multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
 	r.AddFromFiles("index", "webapp/templates/base.html", "webapp/templates/welcome.html")
@@ -66,7 +67,7 @@ func NewServer() *Server {
 	return s
 }
 
-// AuthUser ...
+// AuthUser - verify user is valid from encrypted jtw token
 func (c *Server) AuthUser(ctx context.Context, in *Tokens.Token) (*Tokens.Token, error) {
 	token, valid := middleware.ValidTokenGRPC(in)
 	if valid {
@@ -79,7 +80,7 @@ func (c *Server) AuthUser(ctx context.Context, in *Tokens.Token) (*Tokens.Token,
 	return &Tokens.Token{}, nil
 }
 
-// GetPantry ...
+// GetPantry - get pantry items for user
 func (c *Server) GetPantry(ctx context.Context, in *Tokens.Token) (*Tokens.Pantry, error) {
 	token, valid := middleware.ValidTokenGRPC(in)
 	if valid {
@@ -108,7 +109,7 @@ func (c *Server) GetPantry(ctx context.Context, in *Tokens.Token) (*Tokens.Pantr
 	return &Tokens.Pantry{}, nil
 }
 
-// GetUserInfo ...
+// GetUserInfo - get extra user info for a given user
 func (c *Server) GetUserInfo(ctx context.Context, in *Tokens.Token) (*Tokens.UserInfo, error) {
 	token, valid := middleware.ValidTokenGRPC(in)
 	if valid {
@@ -171,7 +172,7 @@ func LaunchServer() {
 		c.HTML(200, "index", gin.H{})
 	})
 
-	// Present not found page
+	// NOTE : Present not found page
 	router.GET("/notfound/:type", func(c *gin.Context) {
 		// Get type url parameter
 		// If param = "login" -> present invalid credentials, else present username already exists
@@ -182,6 +183,7 @@ func LaunchServer() {
 		}
 	})
 
+	// NOTE : Present the signup form
 	router.GET("/signup", func(c *gin.Context) {
 		d := mobile.GetDevice(c)
 		isMobile := false
@@ -191,6 +193,7 @@ func LaunchServer() {
 		c.HTML(200, "signup", gin.H{"isMobile": isMobile})
 	})
 
+	// NOTE : Present the login form
 	router.GET("/login", func(c *gin.Context) {
 		d := mobile.GetDevice(c)
 		isMobile := false
@@ -200,7 +203,7 @@ func LaunchServer() {
 		c.HTML(200, "login", gin.H{"isMobile": isMobile})
 	})
 
-	// NOTE : signup user logic
+	// NOTE : Perform signup user logic
 	router.POST("/signup_user", func(c *gin.Context) {
 		email := c.PostForm("Email")
 		password := c.PostForm("Password")
@@ -220,7 +223,7 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/notfound/signup")
 	})
 
-	// NOTE : user login logic
+	// NOTE : Perform user login logic
 	router.POST("/login_user", func(c *gin.Context) {
 		// Generate token
 		token := getLoginToken(loginController, c)
@@ -229,7 +232,7 @@ func LaunchServer() {
 		}
 	})
 
-	// NOTE : edit user info logic
+	// NOTE : Display user edit form
 	router.GET("/useredit", func(c *gin.Context) {
 		// Generate token
 		d := mobile.GetDevice(c)
@@ -251,7 +254,7 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
-	// NOTE : edit user info logic
+	// NOTE : Perform edit user info logic
 	router.POST("/edit_user", func(c *gin.Context) {
 		// Generate token
 		message := authuser(c)
@@ -269,7 +272,6 @@ func LaunchServer() {
 			data := []byte(password)
 			hash := md5.Sum(data)
 			password = hex.EncodeToString(hash[:])
-			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
 			user := models.User{}
 			userinfo := models.UserInfo{}
 			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
@@ -285,19 +287,18 @@ func LaunchServer() {
 			c.SetCookie("token", "", -1, "/", "", false, false)
 			getLoginToken(loginController, c)
 			return
-			// c.HTML(200, "edit", gin.H{"userobj": user, "city": userinfo.City, "state": userinfo.State, "restrictions": userinfo.Restirctions})
 		}
 		c.Redirect(http.StatusFound, "/login")
 	})
 
-	// Logout user
+	// NOTE : Logout user
 	router.GET("/logout", func(c *gin.Context) {
 		// delete token cookie and send home
 		c.SetCookie("token", "", -1, "/", "", false, false)
 		c.Redirect(http.StatusFound, "/")
 	})
 
-	// NOTE : digital pantry logic
+	// NOTE : Digital pantry logic
 	router.GET("/pantry", func(c *gin.Context) {
 		// Generate token
 		message := authuser(c)
@@ -322,6 +323,7 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
+	// NOTE : Display recipe request form
 	router.GET("/recipe", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -336,6 +338,7 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
+	// NOTE : Perform recipe search
 	router.POST("/recipeSearch", func(c *gin.Context) {
 
 		type myForm struct {
@@ -440,6 +443,7 @@ func LaunchServer() {
 		c.HTML(http.StatusOK, "recipeResults", gin.H{"recipes": string(resultJSON)})
 	})
 
+	// NOTE : Display add item form
 	router.GET("/additem", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -450,7 +454,7 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
-	// Note: Add item logic
+	// NOTE : Add item logic
 	router.POST("/additem", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -568,6 +572,7 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
+	// NOTE : Display edit pantry item form
 	router.GET("/edit/:id", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -615,6 +620,7 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
+	// NOTE : Delete pantry item
 	router.GET("/delete/:id", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -635,6 +641,7 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/pantry")
 	})
 
+	// NOTE : Perform item edit
 	router.POST("/edit/:id", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -720,6 +727,7 @@ func LaunchServer() {
 	router.Run(":8080")
 }
 
+// Determine if date is in a valid format
 func invalidDate(dateString string) bool {
 	monthsplit := strings.Index(dateString, "/")
 	month := dateString[0:monthsplit]
@@ -739,6 +747,7 @@ func invalidDate(dateString string) bool {
 	return err != nil
 }
 
+// Get the login token from a gin context and verify its integrity
 func getLoginToken(loginController controller.LoginController, c *gin.Context) string {
 	token := loginController.Login(c)
 	if token != "" {
@@ -759,6 +768,7 @@ func getLoginToken(loginController controller.LoginController, c *gin.Context) s
 	return token
 }
 
+// Determine if a user is properly authenticated
 func authuser(c *gin.Context) *jwt.Token {
 	token, valid := middleware.ValidToken(c)
 	// If valid send username from JWT
