@@ -1,6 +1,5 @@
 # ChefCart
-Visit us at: 
-ChefCart.herokuapp.com
+[Visit us!](https://ChefCart.herokuapp.com)
 
 ## Setup
 1. Copy GitHub repository
