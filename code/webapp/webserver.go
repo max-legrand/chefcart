@@ -502,6 +502,7 @@ func LaunchServer() {
 			fmt.Println(string(body))
 			jsonString := string(body)
 
+			image := c.PostForm("Image")
 			if len(gjson.Get(jsonString, "annotations").Array()) == 0 {
 				store := ginsession.FromContext(c)
 				store.Set("invalidFood", name)
@@ -509,7 +510,9 @@ func LaunchServer() {
 				c.Redirect(http.StatusFound, "/pantry")
 				return
 			}
-
+			if image == "Default" {
+				image = gjson.Get(jsonString, "annotations.0.image").String()
+			}
 			quantity := c.PostForm("Quantity")
 			if quantity == "0" {
 				quantity = "N/A"
@@ -525,36 +528,6 @@ func LaunchServer() {
 				weight += (" " + c.PostForm("WeightUnits"))
 			} else {
 				weight = "N/A"
-			}
-			image := c.PostForm("Image")
-			if image == "Default" {
-				url := "https://api.spoonacular.com/food/search?query=" + name + "&offset=0&number=1&apiKey=" + os.Getenv("APIKEY")
-				method := "GET"
-				client := &http.Client{}
-				req, err := http.NewRequest(method, url, nil)
-				if err != nil {
-					fmt.Println(err)
-					return
-				}
-				res, err := client.Do(req)
-				if err != nil {
-					fmt.Println(err)
-					return
-				}
-				defer res.Body.Close()
-				body, err := ioutil.ReadAll(res.Body)
-				if err != nil {
-					fmt.Println(err)
-					return
-				}
-				jsonString := string(body)
-				fmt.Println(jsonString)
-				numResults := gjson.Get(jsonString, "searchResults.5")
-				if numResults.Get("totalResults").Int() == 1 {
-					image = "https://spoonacular.com/cdn/ingredients_100x100/" + numResults.Get("results.0.image").String()
-				} else {
-					image = ""
-				}
 			}
 			models.DB.Create(&models.Ingredient{
 				Name:       name,

@@ -85,7 +85,7 @@ Vue.component('pantry', {
                 </tr>
                 </table>
                 <div v-if="foodName != ''" class="alert alert-info" role="alert">
-                    {{foodName}} is not a vaid food item
+                    {{foodName}} is not a valid food item
                 </div>
                 <div v-for="item in lowItems">
                     <div v-if="item.name[item.name.length -1] == 's'" class="alert alert-warning" role="alert">
