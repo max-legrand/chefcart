@@ -1,0 +1,73 @@
+<!-- Template for querying for recipes -->
+
+{{ define "content" }}
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.2/angular.min.js"
+    integrity="sha512-7oYXeK0OxTFxndh0erL8FsjGvrl2VMDor6fVqzlLGfwOQQqTbYsGPv4ZZ15QHfSk80doyaM0ZJdvkyDcVO7KFA=="
+    crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput-angular.js"></script>
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput-angular.min.js"></script>
+<link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput-typeahead.css" />
+<link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.js"></script>
+
+<style>
+    .bootstrap-tagsinput {
+        width: 100% !important;
+    }
+
+    .bootstrap-tagsinput input {
+        border: none;
+        box-shadow: none;
+        outline: none;
+        background-color: transparent;
+    }
+
+    .bootstrap-tagsinput .tag {
+        background: rgb(120, 224, 190);
+        border: 1px solid black;
+        padding: 0 6px;
+        margin-right: 2px;
+        color: black;
+        border-radius: 4px;
+    }
+</style>
+
+<div class="container-fluid" id="recipeDiv">
+    <recipe>
+    </recipe>
+</div>
+
+<script type="text/babel" src="js/dist/recipeSearch.js"></script>
+
+<script type="text/javascript" src="js/sortTable.js"></script>
+
+<script>
+    $('#additionalIngredients').tagsinput({
+        cancelConfirmKeysOnEmpty: true
+    });
+    $('#tags-input').tagsinput({
+        confirmKeys: [13, 188]
+    });
+
+    $('#tags-input input').on('keypress', function (e) {
+        if (e.keyCode == 13) {
+            e.keyCode = 188;
+            e.preventDefault();
+        };
+    });
+
+    $('.bootstrap-tagsinput input').keydown(function (event) {
+        if (event.which == 13) {
+            $(this).blur();
+            $(this).focus();
+            return false;
+        }
+    })
+</script>
+{{end}}

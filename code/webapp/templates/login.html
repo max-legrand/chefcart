@@ -1,0 +1,72 @@
+<!-- Template for login form -->
+
+{{ define "content" }}
+<style>
+    a {
+        text-decoration: none !important;
+    }
+</style>
+<div class="container-fluid">
+
+    {{if .isMobile }}
+    <br>
+    <div class="row">
+        <div class="col-4">
+        </div>
+        <div class="col-4">
+            <h1>Login</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <form action="/login_user" method="POST">
+                <div class="form-group">
+                    <label for="exampleInputEmail1">Email address</label>
+                    <input name="Email" type="email" class="form-control" id="exampleInputEmail1"
+                        aria-describedby="emailHelp" placeholder="Enter email" required>
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputPassword1">Password</label>
+                    <input name="Password" type="password" class="form-control" id="exampleInputPassword1"
+                        placeholder="Password" required>
+                </div>
+                <br>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <a href="/" class="btn btn-primary" role="button">Back</a>
+            </form>
+        </div>
+    </div>
+    {{else }}
+    <br>
+    <div class="row">
+        <div class="col-md-4">
+        </div>
+        <div class="col-md-4">
+            <h1>Login</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+        </div>
+        <div class="col-md-4">
+            <form action="/login_user" method="POST">
+                <div class="form-group">
+                    <label for="exampleInputEmail1">Email address</label>
+                    <input name="Email" type="email" class="form-control" id="exampleInputEmail1"
+                        aria-describedby="emailHelp" placeholder="Enter email" required>
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputPassword1">Password</label>
+                    <input name="Password" type="password" class="form-control" id="exampleInputPassword1"
+                        placeholder="Password" required>
+                </div>
+                <br>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <a href="/" class="btn btn-primary" role="button">Back</a>
+            </form>
+        </div>
+    </div>
+    {{end}}
+</div>
+
+{{end}}
