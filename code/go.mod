@@ -26,8 +26,13 @@ require (
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/tidwall/gjson v1.6.8
 	github.com/ugorji/go v1.2.4 // indirect
+	github.com/yuin/goldmark v1.3.3 // indirect
 	golang.org/x/crypto v0.0.0-20210317152858-513c2a44f670 // indirect
-	golang.org/x/sys v0.0.0-20210319071255-635bc2c9138d // indirect
+	golang.org/x/mod v0.4.2 // indirect
+	golang.org/x/net v0.0.0-20210331212208-0fccb6fa2b5c // indirect
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
+	golang.org/x/sys v0.0.0-20210331175145-43e1dd70ce54 // indirect
+	golang.org/x/tools v0.1.0 // indirect
 	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
