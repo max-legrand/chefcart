@@ -56,7 +56,7 @@ Vue.component('grocery', {
                 </tr>
                 </table>
                 <div v-if="foodName != ''" class="alert alert-info" role="alert">
-                    {{foodName}} is not a vaid food item
+                    {{foodName}}
                 </div>
                 <br>
                 <a href="/addGrocery" class="btn btn-primary" role="button">Add +</a>

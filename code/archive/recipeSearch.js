@@ -138,6 +138,10 @@ Vue.component('recipe', {
                         <div class="form-group" style="width: 100%">
                             <input v-on:keyup.enter="stopInput" type="text" class="form-control" id="additionalIngredients" aria-describedby="emailHelp" name="additionalIngredients" data-role="tagsinput">
                         </div>
+                        <h2>Excluded Ingredients</h2>
+                        <div class="excludedIngredients form-group" style="width: 100%">
+                            <input v-on:keyup.enter="stopInput" type="text" class="form-control" id="excludedIngredients" aria-describedby="emailHelp" name="excludedIngredients" data-role="tagsinput">
+                        </div>
                         <h2>Specific Cuisines</h2>
                         <div class="form-group" style="width: 100%">
                             <select style="width: 100% !important" id="cuisine" name="cuisines" class="selectpicker form-control"
@@ -229,6 +233,9 @@ $(document).ready(function () {
     $('#additionalIngredients').tagsinput({
         cancelConfirmKeysOnEmpty: true
     });
+    $('#excludedIngredients').tagsinput({
+        cancelConfirmKeysOnEmpty: true
+    });
     $('#tags-input').tagsinput({
         confirmKeys: [13, 188]
     });
@@ -247,6 +254,9 @@ $(document).ready(function () {
     });
     $('#additionalIngredients').on('itemAdded', function (event) {
         $('#additionalIngredients').tagsinput('refresh');
+    });
+    $('#excludedIngredients').on('itemAdded', function (event) {
+        $('#excludedIngredients').tagsinput('refresh');
     });
     $('#cuisine').selectpicker();
 })

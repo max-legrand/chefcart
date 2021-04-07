@@ -353,3 +353,53 @@ func TestFindRecipes(t *testing.T) {
 		t.Errorf("Could not find recipes")
 	}
 }
+
+func TestGroceries(t *testing.T) {
+	results, err := webapp.AuthUserUnwrapped(&Tokens.Token{Token: tokenString})
+	user := models.User{}
+	models.DB.Where("email = ?", results.Token).First(&user)
+	input := Tokens.Token{Token: tokenString}
+	result, err := webapp.GetGroceries(&input)
+	if err != nil {
+		t.Errorf("Encountered unexpected error")
+	}
+	if len(result.Pantry) != 0 {
+		t.Errorf("Got pantry item, expected empty list")
+	}
+	item := models.Grocery{
+		UID:  user.ID,
+		Name: "testfood",
+	}
+	models.DB.Create(&item)
+	result, err = webapp.GetGroceries(&input)
+	if err != nil {
+		t.Errorf("Encountered unexpected error")
+	}
+	if len(result.Pantry) == 0 {
+		t.Errorf("Got pantry item, expected empty list")
+	}
+	models.DB.Delete(&item)
+	fmt.Println("Succesfully retrieved groceries")
+}
+
+func TestGroceriesResults(t *testing.T) {
+	results, _ := webapp.AuthUserUnwrapped(&Tokens.Token{Token: tokenString})
+	user := models.User{}
+	models.DB.Where("email = ?", results.Token).First(&user)
+	item := models.Grocery{
+		UID:  user.ID,
+		Name: "cheese",
+	}
+	models.DB.Create(&item)
+	in := Tokens.SearchQuery{
+		Token: tokenString,
+		ID:    fmt.Sprint(item.ID),
+	}
+	resultsStore, _ := webapp.GetSearchResults(&in)
+	if resultsStore.Address == "" {
+		t.Errorf("Failed to retrieve results")
+	}
+	models.DB.Delete(&item)
+	fmt.Println("Succesfully retrieved groceries from search")
+	fmt.Println(fmt.Sprint(len(resultsStore.Results)) + " Results found")
+}

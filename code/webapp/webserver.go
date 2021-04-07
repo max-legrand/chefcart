@@ -55,6 +55,7 @@ func tempRender() multitemplate.Renderer {
 	r.AddFromFiles("grocery", "webapp/templates/base.html", "webapp/templates/grocery.html")
 	r.AddFromFiles("addGrocery", "webapp/templates/base.html", "webapp/templates/addGrocery.html")
 	r.AddFromFiles("groceryResults", "webapp/templates/base.html", "webapp/templates/groceryResults.html")
+	r.AddFromFiles("changePassword", "webapp/templates/base.html", "webapp/templates/changePassword.html")
 	return r
 }
 
@@ -96,14 +97,15 @@ func (c *Server) GetPantry(ctx context.Context, in *Tokens.Token) (*Tokens.Pantr
 
 		for _, item := range pantry {
 			result.Pantry = append(result.Pantry, &Tokens.Ingredient{
-				Id:         int64(item.ID),
-				UID:        uint64(item.UID),
-				Name:       item.Name,
-				Quantity:   item.Quantity,
-				Weight:     item.Weight,
-				Volume:     item.Volume,
-				Expiration: item.Expiration,
-				ImageLink:  item.ImageLink,
+				Id:                int64(item.ID),
+				UID:               uint64(item.UID),
+				Name:              item.Name,
+				Quantity:          item.Quantity,
+				Weight:            item.Weight,
+				Volume:            item.Volume,
+				Expiration:        item.Expiration,
+				ImageLink:         item.ImageLink,
+				QuantityThreshold: float32(item.QuantityThreshold),
 			})
 		}
 		return &result, nil
@@ -145,11 +147,10 @@ func (c *Server) GetUserInfo(ctx context.Context, in *Tokens.Token) (*Tokens.Use
 		models.DB.Where("email = ?", token.Claims.(jwt.MapClaims)["name"]).First(&user)
 		models.DB.Where("ID = ?", user.ID).First(&userinfo)
 		result := Tokens.UserInfo{
-			City:              userinfo.City,
-			State:             userinfo.State,
-			Diets:             userinfo.Diets,
-			Intolerances:      userinfo.Intolerances,
-			QuantityThreshold: float32(userinfo.QuantityThreshold),
+			City:         userinfo.City,
+			State:        userinfo.State,
+			Diets:        userinfo.Diets,
+			Intolerances: userinfo.Intolerances,
 		}
 		return &result, nil
 	}
@@ -173,7 +174,7 @@ func (c *Server) GetSearchResults(ctx context.Context, in *Tokens.SearchQuery) (
 			return &Tokens.Store{}, errors.New("Item does not belong to you")
 		}
 
-		url := "http://api.geonames.org/postalCodeSearchJSON?username=malaow3&placename=" + userinfo.City + ",%20" + userinfo.State + "&placename_startsWith=" + userinfo.City + "&maxRows=1&countryBias=US"
+		url := "http://api.geonames.org/postalCodeSearchJSON?username=malaow3&placename=" + strings.ReplaceAll(userinfo.City, " ", "%20") + ",%20" + userinfo.State + "&placename_startsWith=" + strings.ReplaceAll(userinfo.City, " ", "%20") + "&maxRows=1&countryBias=US"
 		fmt.Println(url)
 		postalJSON := getFromURL(url, "")
 		if len(gjson.Get(postalJSON, "postalCodes").Array()) == 0 {
@@ -315,7 +316,7 @@ func LaunchServer() {
 		if len(users) == 0 {
 			user := models.User{Email: email, Password: newpass}
 			models.DB.Create(&user)
-			userinfo := models.UserInfo{QuantityThreshold: -1, Diets: []string{}, Intolerances: []string{}, City: "", State: "", ID: int(user.ID)}
+			userinfo := models.UserInfo{Diets: []string{}, Intolerances: []string{}, City: "", State: "", ID: int(user.ID)}
 			models.DB.Create(&userinfo)
 			getLoginToken(loginController, c)
 			return
@@ -359,7 +360,6 @@ func LaunchServer() {
 		// Generate token
 		message := authuser(c)
 		if message != nil {
-			password := c.PostForm("Password")
 			city := c.PostForm("City")
 			state := c.PostForm("State")
 			diets := c.PostFormArray("diets")
@@ -368,20 +368,14 @@ func LaunchServer() {
 			if quantityThreshold < 0 {
 				quantityThreshold = -1.0
 			}
-			// Hash and update password
-			data := []byte(password)
-			hash := md5.Sum(data)
-			password = hex.EncodeToString(hash[:])
 			user := models.User{}
 			userinfo := models.UserInfo{}
 			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
 			models.DB.Where("ID = ?", user.ID).First(&userinfo)
-			user.Password = password
 			userinfo.City = city
 			userinfo.State = state
 			userinfo.Intolerances = intolerances
 			userinfo.Diets = diets
-			userinfo.QuantityThreshold = quantityThreshold
 			models.DB.Save(&user)
 			models.DB.Save(&userinfo)
 			c.SetCookie("token", "", -1, "/", "", false, false)
@@ -445,6 +439,7 @@ func LaunchServer() {
 			type myForm struct {
 				Ingredients           []string `form:"ingredients[]"`
 				AdditionalIngredients string   `form:"additionalIngredients"`
+				ExcludedIngredients   string   `form:"excludedIngredients"`
 				Diets                 []string `form:"diets"`
 				Intolerances          []string `form:"intolerances"`
 				Cuisine               []string `form:"cuisine"`
@@ -469,7 +464,7 @@ func LaunchServer() {
 			offset := 0
 			resultsSeen := 0
 
-			url := "https://api.spoonacular.com/recipes/complexSearch?intolerances=" + strings.Join(formData.Intolerances, ",") + "&includeIngredients=" + ingredients + "&number=10&offset=" + strconv.Itoa(offset) + "&diet=" + strings.Join(formData.Diets, ",") + "&cuisine=" + strings.Join(formData.Cuisine, ",") + "&apiKey=" + os.Getenv("APIKEY")
+			url := "https://api.spoonacular.com/recipes/complexSearch?intolerances=" + strings.Join(formData.Intolerances, ",") + "&includeIngredients=" + ingredients + "&excludeIngredients=" + formData.ExcludedIngredients + "&number=10&offset=" + strconv.Itoa(offset) + "&diet=" + strings.Join(formData.Diets, ",") + "&cuisine=" + strings.Join(formData.Cuisine, ",") + "&apiKey=" + os.Getenv("APIKEY")
 			fmt.Println(url)
 			method := "GET"
 
@@ -570,7 +565,60 @@ func LaunchServer() {
 				}
 			}
 			name := strings.Title(strings.ToLower(c.PostForm("Name")))
+			foodItem := models.Ingredient{}
+			user := models.User{}
+			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
 
+			result := models.DB.Where("name = ? and UID = ?", name, user.ID).Find(&foodItem)
+			if result.RowsAffected != 0 {
+				store := ginsession.FromContext(c)
+				if name[len(name)-1] == 's' {
+					store.Set("invalidFood", name+" already exist in your digital pantry")
+				} else {
+					store.Set("invalidFood", name+" already exists in your digital pantry")
+				}
+				store.Save()
+				c.Redirect(http.StatusFound, "/pantry")
+				return
+			}
+			if result.RowsAffected != 0 {
+				store := ginsession.FromContext(c)
+				if name[len(name)-1] == 's' {
+					store.Set("invalidFood", name+" already exist in your digital pantry")
+				} else {
+					store.Set("invalidFood", name+" already exists in your digital pantry")
+				}
+				store.Save()
+				c.Redirect(http.StatusFound, "/pantry")
+				return
+			}
+			if name[len(name)-1] == 's' {
+				result := models.DB.Where("name = ? and UID = ?", name[0:len(name)-1], user.ID).Find(&foodItem)
+				if result.RowsAffected != 0 {
+					store := ginsession.FromContext(c)
+					if name[len(name)-1] == 's' {
+						store.Set("invalidFood", name+" already exist in your digital pantry")
+					} else {
+						store.Set("invalidFood", name+" already exists in your digital pantry")
+					}
+					store.Save()
+					c.Redirect(http.StatusFound, "/pantry")
+					return
+				}
+			} else {
+				result := models.DB.Where("name = ? and UID = ?", name+"s", user.ID).Find(&foodItem)
+				if result.RowsAffected != 0 {
+					store := ginsession.FromContext(c)
+					if name[len(name)-1] == 's' {
+						store.Set("invalidFood", name+" already exist in your digital pantry")
+					} else {
+						store.Set("invalidFood", name+" already exists in your digital pantry")
+					}
+					store.Save()
+					c.Redirect(http.StatusFound, "/pantry")
+					return
+				}
+			}
 			url := "https://spoonacular.com/api/tagFoods"
 			method := "POST"
 
@@ -610,7 +658,7 @@ func LaunchServer() {
 			image := c.PostForm("Image")
 			if len(gjson.Get(jsonString, "annotations").Array()) == 0 {
 				store := ginsession.FromContext(c)
-				store.Set("invalidFood", name)
+				store.Set("invalidFood", name+" is not a valid food item")
 				store.Save()
 				c.Redirect(http.StatusFound, "/pantry")
 				return
@@ -634,14 +682,20 @@ func LaunchServer() {
 			} else {
 				weight = "N/A"
 			}
+			quantityThreshold, _ := strconv.ParseFloat(c.PostForm("QuantityThreshold"), 64)
+			if quantityThreshold < 0 {
+				quantityThreshold = -1
+			}
+
 			models.DB.Create(&models.Ingredient{
-				Name:       name,
-				UID:        uint(message.Claims.(jwt.MapClaims)["UID"].(float64)),
-				Quantity:   quantity,
-				Volume:     volume,
-				Weight:     weight,
-				ImageLink:  image,
-				Expiration: date,
+				Name:              name,
+				UID:               uint(message.Claims.(jwt.MapClaims)["UID"].(float64)),
+				Quantity:          quantity,
+				Volume:            volume,
+				Weight:            weight,
+				ImageLink:         image,
+				Expiration:        date,
+				QuantityThreshold: quantityThreshold,
 			})
 			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
 			c.Redirect(http.StatusFound, "/pantry")
@@ -781,7 +835,7 @@ func LaunchServer() {
 			image := c.PostForm("Image")
 			if len(gjson.Get(jsonString, "annotations").Array()) == 0 {
 				store := ginsession.FromContext(c)
-				store.Set("invalidFood", name)
+				store.Set("invalidFood", name+" is not a valid food item")
 				store.Save()
 				c.Redirect(http.StatusFound, "/pantry")
 				return
@@ -805,12 +859,17 @@ func LaunchServer() {
 			} else {
 				weight = "N/A"
 			}
+			quantityThreshold, _ := strconv.ParseFloat(c.PostForm("QuantityThreshold"), 64)
+			if quantityThreshold < 0 {
+				quantityThreshold = -1
+			}
 			pantry.Name = name
 			pantry.Quantity = quantity
 			pantry.Volume = volume
 			pantry.Weight = weight
 			pantry.ImageLink = image
 			pantry.Expiration = date
+			pantry.QuantityThreshold = quantityThreshold
 			models.DB.Save(&pantry)
 
 			c.Redirect(http.StatusFound, "/pantry")
@@ -819,6 +878,7 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
+	// NOTE : Display Grocery list items
 	router.GET("/grocery", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -835,6 +895,7 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
+	// NOTE : Add grocery list item
 	router.GET("/addGrocery", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -844,10 +905,58 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
+	// NOTE : Add grocery list item logic
 	router.POST("/addGrocery", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
+
+			foodItem := models.Ingredient{}
+			user := models.User{}
+			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
 			name := strings.Title(strings.ToLower(c.PostForm("Name")))
+
+			result := models.DB.Where("name = ? and UID = ?", name, user.ID).Find(&foodItem)
+			if result.RowsAffected != 0 {
+				store := ginsession.FromContext(c)
+				if name[len(name)-1] == 's' {
+					store.Set("invalidFood", name+" already exist in your grocery list")
+				} else {
+					store.Set("invalidFood", name+" already exists in your grocery list")
+
+				}
+				store.Save()
+				c.Redirect(http.StatusFound, "/grocery")
+				return
+			}
+			if name[len(name)-1] == 's' {
+				result := models.DB.Where("name = ? and UID = ?", name[0:len(name)-1], user.ID).Find(&foodItem)
+				if result.RowsAffected != 0 {
+					store := ginsession.FromContext(c)
+					if name[len(name)-1] == 's' {
+						store.Set("invalidFood", name+" already exist in your grocery list")
+					} else {
+						store.Set("invalidFood", name+" already exists in your grocery list")
+
+					}
+					store.Save()
+					c.Redirect(http.StatusFound, "/grocery")
+					return
+				}
+			} else {
+				result := models.DB.Where("name = ? and UID = ?", name+"s", user.ID).Find(&foodItem)
+				if result.RowsAffected != 0 {
+					store := ginsession.FromContext(c)
+					if name[len(name)-1] == 's' {
+						store.Set("invalidFood", name+" already exist in your grocery list")
+					} else {
+						store.Set("invalidFood", name+" already exists in your grocery list")
+
+					}
+					store.Save()
+					c.Redirect(http.StatusFound, "/grocery")
+					return
+				}
+			}
 
 			url := "https://spoonacular.com/api/tagFoods"
 			method := "POST"
@@ -888,7 +997,7 @@ func LaunchServer() {
 			image := c.PostForm("Image")
 			if len(gjson.Get(jsonString, "annotations").Array()) == 0 {
 				store := ginsession.FromContext(c)
-				store.Set("invalidFood", name)
+				store.Set("invalidFood", name+" is not a valid food")
 				store.Save()
 				c.Redirect(http.StatusFound, "/grocery")
 				return
@@ -907,6 +1016,7 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
+	// NOTE : Delete grocery list item
 	router.GET("/deleteGrocery/:id", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -927,6 +1037,7 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
+	// NOTE : Search for grocery list item
 	router.GET("/search/:id", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -943,6 +1054,53 @@ func LaunchServer() {
 				return
 			}
 			c.HTML(http.StatusOK, "groceryResults", gin.H{"userobj": user, "id": c.Param("id")})
+			return
+		}
+		c.Redirect(http.StatusFound, "/login")
+	})
+
+	// NOTE : Edit password
+	router.GET("/changePassword", func(c *gin.Context) {
+		d := mobile.GetDevice(c)
+		isMobile := false
+		if d.Mobile() {
+			isMobile = true
+		}
+		message := authuser(c)
+		if message != nil {
+			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
+			user := models.User{}
+			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
+			c.HTML(200, "changePassword", gin.H{"isMobile": isMobile, "userobj": user})
+			return
+		}
+		c.Redirect(http.StatusFound, "/login")
+	})
+
+	router.POST("/changePassword", func(c *gin.Context) {
+		message := authuser(c)
+		if message != nil {
+			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
+			// Hash and update password
+			password := c.PostForm("oldPass")
+			data := []byte(password)
+			hash := md5.Sum(data)
+			password = hex.EncodeToString(hash[:])
+			user := models.User{}
+			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
+			if user.Password != password {
+				c.Redirect(http.StatusFound, "/notfound/login")
+				return
+			}
+			newPass := c.PostForm("Password")
+			data = []byte(newPass)
+			hash = md5.Sum(data)
+			newpassword := hex.EncodeToString(hash[:])
+			user.Password = newpassword
+			models.DB.Save(&user)
+			c.SetCookie("token", "", -1, "/", "", false, false)
+			getLoginToken(loginController, c)
+			c.Redirect(http.StatusFound, "/")
 			return
 		}
 		c.Redirect(http.StatusFound, "/login")

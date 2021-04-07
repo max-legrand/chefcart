@@ -27,21 +27,21 @@ proto.main = require('./token_pb.js');
  * @final
  */
 proto.main.ServerClient =
-  function (hostname, credentials, options) {
-    if (!options) options = {};
-    options['format'] = 'text';
+    function(hostname, credentials, options) {
+  if (!options) options = {};
+  options['format'] = 'text';
 
-    /**
-     * @private @const {!grpc.web.GrpcWebClientBase} The client
-     */
-    this.client_ = new grpc.web.GrpcWebClientBase(options);
+  /**
+   * @private @const {!grpc.web.GrpcWebClientBase} The client
+   */
+  this.client_ = new grpc.web.GrpcWebClientBase(options);
 
-    /**
-     * @private @const {string} The hostname
-     */
-    this.hostname_ = hostname;
+  /**
+   * @private @const {string} The hostname
+   */
+  this.hostname_ = hostname;
 
-  };
+};
 
 
 /**
@@ -53,21 +53,21 @@ proto.main.ServerClient =
  * @final
  */
 proto.main.ServerPromiseClient =
-  function (hostname, credentials, options) {
-    if (!options) options = {};
-    options['format'] = 'text';
+    function(hostname, credentials, options) {
+  if (!options) options = {};
+  options['format'] = 'text';
 
-    /**
-     * @private @const {!grpc.web.GrpcWebClientBase} The client
-     */
-    this.client_ = new grpc.web.GrpcWebClientBase(options);
+  /**
+   * @private @const {!grpc.web.GrpcWebClientBase} The client
+   */
+  this.client_ = new grpc.web.GrpcWebClientBase(options);
 
-    /**
-     * @private @const {string} The hostname
-     */
-    this.hostname_ = hostname;
+  /**
+   * @private @const {string} The hostname
+   */
+  this.hostname_ = hostname;
 
-  };
+};
 
 
 /**
@@ -85,7 +85,7 @@ const methodDescriptor_Server_AuthUser = new grpc.web.MethodDescriptor(
    * @param {!proto.main.Token} request
    * @return {!Uint8Array}
    */
-  function (request) {
+  function(request) {
     return request.serializeBinary();
   },
   proto.main.Token.deserializeBinary
@@ -104,7 +104,7 @@ const methodInfo_Server_AuthUser = new grpc.web.AbstractClientBase.MethodInfo(
    * @param {!proto.main.Token} request
    * @return {!Uint8Array}
    */
-  function (request) {
+  function(request) {
     return request.serializeBinary();
   },
   proto.main.Token.deserializeBinary
@@ -122,14 +122,14 @@ const methodInfo_Server_AuthUser = new grpc.web.AbstractClientBase.MethodInfo(
  *     The XHR Node Readable Stream
  */
 proto.main.ServerClient.prototype.authUser =
-  function (request, metadata, callback) {
-    return this.client_.rpcCall(this.hostname_ +
+    function(request, metadata, callback) {
+  return this.client_.rpcCall(this.hostname_ +
       '/main.Server/AuthUser',
       request,
       metadata || {},
       methodDescriptor_Server_AuthUser,
       callback);
-  };
+};
 
 
 /**
@@ -141,13 +141,13 @@ proto.main.ServerClient.prototype.authUser =
  *     Promise that resolves to the response
  */
 proto.main.ServerPromiseClient.prototype.authUser =
-  function (request, metadata) {
-    return this.client_.unaryCall(this.hostname_ +
+    function(request, metadata) {
+  return this.client_.unaryCall(this.hostname_ +
       '/main.Server/AuthUser',
       request,
       metadata || {},
       methodDescriptor_Server_AuthUser);
-  };
+};
 
 
 /**
@@ -165,7 +165,7 @@ const methodDescriptor_Server_GetPantry = new grpc.web.MethodDescriptor(
    * @param {!proto.main.Token} request
    * @return {!Uint8Array}
    */
-  function (request) {
+  function(request) {
     return request.serializeBinary();
   },
   proto.main.Pantry.deserializeBinary
@@ -184,7 +184,7 @@ const methodInfo_Server_GetPantry = new grpc.web.AbstractClientBase.MethodInfo(
    * @param {!proto.main.Token} request
    * @return {!Uint8Array}
    */
-  function (request) {
+  function(request) {
     return request.serializeBinary();
   },
   proto.main.Pantry.deserializeBinary
@@ -202,14 +202,14 @@ const methodInfo_Server_GetPantry = new grpc.web.AbstractClientBase.MethodInfo(
  *     The XHR Node Readable Stream
  */
 proto.main.ServerClient.prototype.getPantry =
-  function (request, metadata, callback) {
-    return this.client_.rpcCall(this.hostname_ +
+    function(request, metadata, callback) {
+  return this.client_.rpcCall(this.hostname_ +
       '/main.Server/GetPantry',
       request,
       metadata || {},
       methodDescriptor_Server_GetPantry,
       callback);
-  };
+};
 
 
 /**
@@ -221,13 +221,13 @@ proto.main.ServerClient.prototype.getPantry =
  *     Promise that resolves to the response
  */
 proto.main.ServerPromiseClient.prototype.getPantry =
-  function (request, metadata) {
-    return this.client_.unaryCall(this.hostname_ +
+    function(request, metadata) {
+  return this.client_.unaryCall(this.hostname_ +
       '/main.Server/GetPantry',
       request,
       metadata || {},
       methodDescriptor_Server_GetPantry);
-  };
+};
 
 
 /**
@@ -245,7 +245,7 @@ const methodDescriptor_Server_GetUserInfo = new grpc.web.MethodDescriptor(
    * @param {!proto.main.Token} request
    * @return {!Uint8Array}
    */
-  function (request) {
+  function(request) {
     return request.serializeBinary();
   },
   proto.main.UserInfo.deserializeBinary
@@ -264,7 +264,7 @@ const methodInfo_Server_GetUserInfo = new grpc.web.AbstractClientBase.MethodInfo
    * @param {!proto.main.Token} request
    * @return {!Uint8Array}
    */
-  function (request) {
+  function(request) {
     return request.serializeBinary();
   },
   proto.main.UserInfo.deserializeBinary
@@ -282,14 +282,14 @@ const methodInfo_Server_GetUserInfo = new grpc.web.AbstractClientBase.MethodInfo
  *     The XHR Node Readable Stream
  */
 proto.main.ServerClient.prototype.getUserInfo =
-  function (request, metadata, callback) {
-    return this.client_.rpcCall(this.hostname_ +
+    function(request, metadata, callback) {
+  return this.client_.rpcCall(this.hostname_ +
       '/main.Server/GetUserInfo',
       request,
       metadata || {},
       methodDescriptor_Server_GetUserInfo,
       callback);
-  };
+};
 
 
 /**
@@ -301,13 +301,13 @@ proto.main.ServerClient.prototype.getUserInfo =
  *     Promise that resolves to the response
  */
 proto.main.ServerPromiseClient.prototype.getUserInfo =
-  function (request, metadata) {
-    return this.client_.unaryCall(this.hostname_ +
+    function(request, metadata) {
+  return this.client_.unaryCall(this.hostname_ +
       '/main.Server/GetUserInfo',
       request,
       metadata || {},
       methodDescriptor_Server_GetUserInfo);
-  };
+};
 
 
 /**
@@ -325,7 +325,7 @@ const methodDescriptor_Server_GetGroceries = new grpc.web.MethodDescriptor(
    * @param {!proto.main.Token} request
    * @return {!Uint8Array}
    */
-  function (request) {
+  function(request) {
     return request.serializeBinary();
   },
   proto.main.Pantry.deserializeBinary
@@ -344,7 +344,7 @@ const methodInfo_Server_GetGroceries = new grpc.web.AbstractClientBase.MethodInf
    * @param {!proto.main.Token} request
    * @return {!Uint8Array}
    */
-  function (request) {
+  function(request) {
     return request.serializeBinary();
   },
   proto.main.Pantry.deserializeBinary
@@ -362,14 +362,14 @@ const methodInfo_Server_GetGroceries = new grpc.web.AbstractClientBase.MethodInf
  *     The XHR Node Readable Stream
  */
 proto.main.ServerClient.prototype.getGroceries =
-  function (request, metadata, callback) {
-    return this.client_.rpcCall(this.hostname_ +
+    function(request, metadata, callback) {
+  return this.client_.rpcCall(this.hostname_ +
       '/main.Server/GetGroceries',
       request,
       metadata || {},
       methodDescriptor_Server_GetGroceries,
       callback);
-  };
+};
 
 
 /**
@@ -381,13 +381,13 @@ proto.main.ServerClient.prototype.getGroceries =
  *     Promise that resolves to the response
  */
 proto.main.ServerPromiseClient.prototype.getGroceries =
-  function (request, metadata) {
-    return this.client_.unaryCall(this.hostname_ +
+    function(request, metadata) {
+  return this.client_.unaryCall(this.hostname_ +
       '/main.Server/GetGroceries',
       request,
       metadata || {},
       methodDescriptor_Server_GetGroceries);
-  };
+};
 
 
 /**
@@ -405,7 +405,7 @@ const methodDescriptor_Server_GetSearchResults = new grpc.web.MethodDescriptor(
    * @param {!proto.main.SearchQuery} request
    * @return {!Uint8Array}
    */
-  function (request) {
+  function(request) {
     return request.serializeBinary();
   },
   proto.main.Store.deserializeBinary
@@ -424,7 +424,7 @@ const methodInfo_Server_GetSearchResults = new grpc.web.AbstractClientBase.Metho
    * @param {!proto.main.SearchQuery} request
    * @return {!Uint8Array}
    */
-  function (request) {
+  function(request) {
     return request.serializeBinary();
   },
   proto.main.Store.deserializeBinary
@@ -442,14 +442,14 @@ const methodInfo_Server_GetSearchResults = new grpc.web.AbstractClientBase.Metho
  *     The XHR Node Readable Stream
  */
 proto.main.ServerClient.prototype.getSearchResults =
-  function (request, metadata, callback) {
-    return this.client_.rpcCall(this.hostname_ +
+    function(request, metadata, callback) {
+  return this.client_.rpcCall(this.hostname_ +
       '/main.Server/GetSearchResults',
       request,
       metadata || {},
       methodDescriptor_Server_GetSearchResults,
       callback);
-  };
+};
 
 
 /**
@@ -461,13 +461,13 @@ proto.main.ServerClient.prototype.getSearchResults =
  *     Promise that resolves to the response
  */
 proto.main.ServerPromiseClient.prototype.getSearchResults =
-  function (request, metadata) {
-    return this.client_.unaryCall(this.hostname_ +
+    function(request, metadata) {
+  return this.client_.unaryCall(this.hostname_ +
       '/main.Server/GetSearchResults',
       request,
       metadata || {},
       methodDescriptor_Server_GetSearchResults);
-  };
+};
 
 
 module.exports = proto.main;

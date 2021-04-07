@@ -12,7 +12,7 @@ Vue.component('pantry', {
         return {
             pantry: [],
             lowItems: [],
-            qThresh: 0.0,
+            expiredItems: [],
             foodName: ""
         }
     },
@@ -31,24 +31,35 @@ Vue.component('pantry', {
             console.log(err)
             console.log(response.toObject())
             self.pantry = response.toObject().pantryList
-            service.getUserInfo(request, {}, function (err, response) {
-                console.log(response.toObject())
-                self.qThresh = response.toObject().quantitythreshold
-                self.pantry.forEach(element => {
+            self.pantry.forEach(element => {
+                let qThresh = element.quantitythreshold
+                let quantity = 0.0
+                var today = new Date();
+                var dd = today.getDate();
+                var mm = today.getMonth() + 1;
+                var yyyy = today.getFullYear();
+                if (dd < 10) {
+                    dd = '0' + dd;
+                }
 
-                    let quantity = 0.0
+                if (mm < 10) {
+                    mm = '0' + mm;
+                }
+                today = mm + '/' + dd + '/' + yyyy;
+                if (element.expiration < today) {
+                    self.expiredItems.push(element)
+                }
+                if (element.quantity == "N/A") {
+                    quantity = qThresh
+                } else if (isNaN(parseFloat(element.quantity)) == false) {
+                    quantity = parseFloat(element.quantity)
+                }
 
-                    if (element.quantity == "N/A") {
-                        quantity = self.qThresh
-                    } else if (isNaN(parseFloat(element.quantity)) == false) {
-                        quantity = parseFloat(element.quantity)
-                    }
+                if (quantity < qThresh && qThresh >= 0) {
+                    self.lowItems.push(element)
+                }
+            });
 
-                    if (quantity < self.qThresh && self.qThresh >= 0) {
-                        self.lowItems.push(element)
-                    }
-                });
-            })
         });
     },
     template: `
@@ -85,7 +96,15 @@ Vue.component('pantry', {
                 </tr>
                 </table>
                 <div v-if="foodName != ''" class="alert alert-info" role="alert">
-                    {{foodName}} is not a valid food item
+                    {{foodName}}
+                </div>
+                <div v-for="item in expiredItems">
+                    <div v-if="item.name[item.name.length -1] == 's'" class="alert alert-danger" role="alert">
+                        {{item.name}} are expired
+                    </div>
+                    <div v-else class="alert alert-danger" role="alert">
+                        {{item.name}} is expired
+                    </div>
                 </div>
                 <div v-for="item in lowItems">
                     <div v-if="item.name[item.name.length -1] == 's'" class="alert alert-warning" role="alert">

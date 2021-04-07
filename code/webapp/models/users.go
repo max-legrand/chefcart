@@ -20,12 +20,11 @@ import (
 
 // UserInfo - struct for maintaining additional user information
 type UserInfo struct {
-	ID                int `gorm:"ForeignKey:ID"`
-	City              string
-	State             string
-	Diets             pq.StringArray `gorm:"type:character varying[]"`
-	Intolerances      pq.StringArray `gorm:"type:character varying[]"`
-	QuantityThreshold float64
+	ID           int `gorm:"ForeignKey:ID"`
+	City         string
+	State        string
+	Diets        pq.StringArray `gorm:"type:character varying[]"`
+	Intolerances pq.StringArray `gorm:"type:character varying[]"`
 }
 
 // User - struct to represent user object
@@ -46,13 +45,14 @@ type Grocery struct {
 // Ingredient ...
 type Ingredient struct {
 	gorm.Model
-	UID        uint `gorm:"ForeignKey:ID"`
-	Name       string
-	Quantity   string
-	Weight     string
-	Volume     string
-	Expiration string
-	ImageLink  string
+	UID               uint `gorm:"ForeignKey:ID"`
+	Name              string
+	Quantity          string
+	Weight            string
+	Volume            string
+	Expiration        string
+	ImageLink         string
+	QuantityThreshold float64
 }
 
 // DB ...

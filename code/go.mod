@@ -27,7 +27,7 @@ require (
 	github.com/tidwall/gjson v1.6.8
 	github.com/ugorji/go v1.2.4 // indirect
 	golang.org/x/crypto v0.0.0-20210317152858-513c2a44f670 // indirect
-	golang.org/x/sys v0.0.0-20210319071255-635bc2c9138d // indirect
+	golang.org/x/sys v0.0.0-20210326220804-49726bf1d181 // indirect
 	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect

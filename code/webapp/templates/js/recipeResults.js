@@ -54,7 +54,7 @@ Vue.component('recipeobj', {
                                 {{recipe.Missing}}
                             </td>
                             <td>
-                                <a v-bind:href="recipe.OriginalLink">View Recipe</a>
+                                <a target="_blank" v-bind:href="recipe.OriginalLink">View Recipe</a>
                             </td>
                         </tr>
                     </table>

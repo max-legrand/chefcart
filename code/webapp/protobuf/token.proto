@@ -15,6 +15,7 @@ message Ingredient {
       string Volume =6 ;
       string Expiration = 7;
       string ImageLink = 8;
+      float QuantityThreshold = 9;
 }
 
 message Pantry {
