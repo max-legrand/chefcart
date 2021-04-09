@@ -910,7 +910,7 @@ func LaunchServer() {
 		message := authuser(c)
 		if message != nil {
 
-			foodItem := models.Ingredient{}
+			foodItem := models.Grocery{}
 			user := models.User{}
 			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
 			name := strings.Title(strings.ToLower(c.PostForm("Name")))
