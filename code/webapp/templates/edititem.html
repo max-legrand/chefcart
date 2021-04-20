@@ -1,4 +1,7 @@
 <!-- Template for editing item information -->
+<!-- written by: Indrasish Moitra -->
+<!-- tested by: Brandon Luong -->
+<!-- debugged by: Elysia Heah -->
 
 {{ define "content" }}
 
@@ -15,17 +18,39 @@
         <div class="col-1"></div>
         <div class="col-10">
             <h1>Edit item</h1>
+            <small>* denotes a required field</small>
             <br>
-            <form action="/edit/{{.pantry.ID}}" method="POST">
+            <br>
+            <form action="/edit/{{.pantry.ID}}" method="POST" id="myform">
                 <div class="form-group">
-                    <label for="Name">Item Name</label>
+                    <label for="Name">Item Name </label><label class="text-danger"> *</label>
                     <input type="text" class="form-control" id="Name" value="{{.pantry.Name}}" name="Name" required>
                 </div>
+                <div class="form-group">
+                    <label for="Expiration">Expiration Date</label><label class="text-danger"> *</label>
+                    <div class="input-group mb-3">
+                        <input type="text" name="Expiration" id="Expiration" class="form-control"
+                            value="{{.pantry.Expiration}}" required>
+                        <div class="input-group-append">
+                            <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                        </div>
+
+                    </div>
+
+
+                </div>
+
                 <div class="form-group">
                     <label for="Quantity">Quantity</label>
                     <input step="0.01" min="0" type="number" class="form-control" name="Quantity" id="Quantity"
                         value="{{.quantity}}">
                     <small id="QuantityHelp" class="form-text text-muted">Set to 0 for N/A</small>
+                </div>
+                <div class="form-group">
+                    <label for="QuantityThreshold">Quantity Threshold Alert</label>
+                    <input name="QuantityThreshold" type="float" class="form-control" id="QuantityThreshold"
+                        value="{{.userinfo.QuantityThreshold}}" step="0.01" min="-1" type="number" required>
+                    <small id="QuantityThresholdHelp" class="form-text text-muted">Set to -1 for no alert</small>
                 </div>
                 <div class="form-group">
                     <label for="Volume">Volume</label>
@@ -61,19 +86,6 @@
                     <small id="VolumeUnitsHelp" class="form-text text-muted">Ignore if weight is N/A</small>
                 </div>
                 <div class="form-group">
-                    <label for="Expiration">Expiraiton Date</label>
-                    <div class="input-group mb-3">
-                        <input type="text" name="Expiration" id="Expiration" class="form-control"
-                            value="{{.pantry.Expiration}}" required>
-                        <div class="input-group-append">
-                            <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                        </div>
-
-                    </div>
-
-
-                </div>
-                <div class="form-group">
                     <label for="Image">Image Link</label>
                     <input type="text" class="form-control" id="Image" value="Default" name="Image"
                         value="{{.pantry.ImageLink}}">
@@ -93,6 +105,20 @@
 </div>
 
 <script>
+    $('#myform').bind('submit', function (e) {
+        e.preventDefault()
+        let weight = $("#Weight").val()
+        let volume = $("#Volume").val()
+        let quantity = $("#Quantity").val()
+        let threshold = $("#QuantityThreshold").val()
+        if (weight > 10000 || volume > 10000 || quantity > 10000 || threshold > 10000) {
+            alert("Please use lower values")
+        } else {
+            this.submit()
+        }
+    });
+
+
     $(document).ready(function () {
         $('#Expiration').datepicker({
             todayHighlight: true

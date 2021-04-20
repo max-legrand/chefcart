@@ -1,4 +1,14 @@
 <!-- Display incorrect information notice -->
 {{ define "content" }}
-<h1>{{.text}}</h1>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-1">
+        </div>
+        <div class="col-md-10">
+            <h1>{{.text}}</h1>
+            <br>
+            <a class="btn btn-primary" role="button" href="{{.back}}">Back</a>
+        </div>
+    </div>
+</div>
 {{end}}

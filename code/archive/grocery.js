@@ -1,18 +1,20 @@
-// Create a Vue application
-// const app = Vue.createApp({})
+// Display grocery list items
+// written by: Shreyas Heragu
+// tested by: Kevin Lin
+// debugged by: Milos Seskar
+
 const { Token } = require('./token_pb');
 const { ServerClient } = require('./token_grpc_web_pb');
 import Cookies from 'js-cookie'
 
-// Define a new global component called button-counter
 Vue.component('grocery', {
     data() {
-
         return {
             pantry: [],
             foodName: ""
         }
     },
+    // Get all pantry items, and foodname if an invalid item was entered previously
     created() {
         this.foodName = foodName
         let self = this;
@@ -30,6 +32,7 @@ Vue.component('grocery', {
             self.pantry = response.toObject().pantryList
         });
     },
+    // Display content
     template: `
     <div>
         <br>
@@ -56,7 +59,7 @@ Vue.component('grocery', {
                 </tr>
                 </table>
                 <div v-if="foodName != ''" class="alert alert-info" role="alert">
-                    {{foodName}} is not a vaid food item
+                    {{foodName}}
                 </div>
                 <br>
                 <a href="/addGrocery" class="btn btn-primary" role="button">Add +</a>
@@ -67,5 +70,4 @@ Vue.component('grocery', {
     `
 })
 
-// app.mount('#pantryDiv')
 new Vue({ el: '#pantryDiv' })

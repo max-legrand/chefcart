@@ -21,6 +21,8 @@ type ServerClient interface {
 	AuthUser(ctx context.Context, in *Token, opts ...grpc.CallOption) (*Token, error)
 	GetPantry(ctx context.Context, in *Token, opts ...grpc.CallOption) (*Pantry, error)
 	GetUserInfo(ctx context.Context, in *Token, opts ...grpc.CallOption) (*UserInfo, error)
+	GetGroceries(ctx context.Context, in *Token, opts ...grpc.CallOption) (*Pantry, error)
+	GetSearchResults(ctx context.Context, in *SearchQuery, opts ...grpc.CallOption) (*Store, error)
 }
 
 type serverClient struct {
@@ -58,6 +60,24 @@ func (c *serverClient) GetUserInfo(ctx context.Context, in *Token, opts ...grpc.
 	return out, nil
 }
 
+func (c *serverClient) GetGroceries(ctx context.Context, in *Token, opts ...grpc.CallOption) (*Pantry, error) {
+	out := new(Pantry)
+	err := c.cc.Invoke(ctx, "/main.Server/GetGroceries", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serverClient) GetSearchResults(ctx context.Context, in *SearchQuery, opts ...grpc.CallOption) (*Store, error) {
+	out := new(Store)
+	err := c.cc.Invoke(ctx, "/main.Server/GetSearchResults", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ServerServer is the server API for Server service.
 // All implementations must embed UnimplementedServerServer
 // for forward compatibility
@@ -65,6 +85,8 @@ type ServerServer interface {
 	AuthUser(context.Context, *Token) (*Token, error)
 	GetPantry(context.Context, *Token) (*Pantry, error)
 	GetUserInfo(context.Context, *Token) (*UserInfo, error)
+	GetGroceries(context.Context, *Token) (*Pantry, error)
+	GetSearchResults(context.Context, *SearchQuery) (*Store, error)
 	mustEmbedUnimplementedServerServer()
 }
 
@@ -80,6 +102,12 @@ func (UnimplementedServerServer) GetPantry(context.Context, *Token) (*Pantry, er
 }
 func (UnimplementedServerServer) GetUserInfo(context.Context, *Token) (*UserInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserInfo not implemented")
+}
+func (UnimplementedServerServer) GetGroceries(context.Context, *Token) (*Pantry, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGroceries not implemented")
+}
+func (UnimplementedServerServer) GetSearchResults(context.Context, *SearchQuery) (*Store, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSearchResults not implemented")
 }
 func (UnimplementedServerServer) mustEmbedUnimplementedServerServer() {}
 
@@ -148,6 +176,42 @@ func _Server_GetUserInfo_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Server_GetGroceries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Token)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServerServer).GetGroceries(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.Server/GetGroceries",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServerServer).GetGroceries(ctx, req.(*Token))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Server_GetSearchResults_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchQuery)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServerServer).GetSearchResults(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.Server/GetSearchResults",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServerServer).GetSearchResults(ctx, req.(*SearchQuery))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Server_ServiceDesc is the grpc.ServiceDesc for Server service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -166,6 +230,14 @@ var Server_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserInfo",
 			Handler:    _Server_GetUserInfo_Handler,
+		},
+		{
+			MethodName: "GetGroceries",
+			Handler:    _Server_GetGroceries_Handler,
+		},
+		{
+			MethodName: "GetSearchResults",
+			Handler:    _Server_GetSearchResults_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

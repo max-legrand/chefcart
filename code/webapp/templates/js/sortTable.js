@@ -1,5 +1,8 @@
 // Sort table based on columns 
 // Triggered by column header click 
+// written by: Jonathan Wong
+// tested by: Shreyas Heragu
+// debugged by: Kevin Lin
 
 function sortTable(n) {
     var table,

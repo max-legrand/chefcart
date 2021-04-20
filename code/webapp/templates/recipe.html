@@ -1,4 +1,7 @@
-<!-- Template for querying for recipes -->
+<!-- Template for searching for recipes -->
+<!-- written by: Maxwell Legrand -->
+<!-- tested by: Jonathan Wong -->
+<!-- debugged by: Shreyas Heragu -->
 
 {{ define "content" }}
 
@@ -30,6 +33,15 @@
 
     .bootstrap-tagsinput .tag {
         background: rgb(120, 224, 190);
+        border: 1px solid black;
+        padding: 0 6px;
+        margin-right: 2px;
+        color: black;
+        border-radius: 4px;
+    }
+
+    .excludedIngredients .bootstrap-tagsinput .tag {
+        background: rgb(224, 120, 120) !important;
         border: 1px solid black;
         padding: 0 6px;
         margin-right: 2px;

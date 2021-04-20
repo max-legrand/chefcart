@@ -1,4 +1,7 @@
 <!-- Base template -->
+<!-- written by: Milos Seskar -->
+<!-- tested by: Maxwell Legrand -->
+<!-- debugged by: Mark Stanik -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -38,13 +41,31 @@
 </head>
 
 <body>
-    <!-- Used for Vue.js debugging -->
-    <!-- <script src="http://localhost:8098"></script> -->
-    <!-- <script>
-        window.__VUE_DEVTOOLS_HOST__ = '192.168.2.70' // default: localhost
-        window.__VUE_DEVTOOLS_PORT__ = '8098' // default: 8098
-    </script>
-    <script src="http://192.168.2.70:8098"></script> -->
+    <nav class="navbar navbar-expand-sm navbar-dark bg-dark justify-content-between">
+        <a class="navbar-brand" href="/">
+            <img id="navbarImage" src="js/large_chefcart.png" height="30" class=" d-inline-block align-top" alt="">
+            ChefCart
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarNavAltMarkup" class="navbar-nav collapse navbar-collapse justify-content-end">
+            {{ if .userobj }}
+            <a style="color: white" class="nav-item nav-link" href="/logout">
+                <i class="far fa-sign-out-alt"></i> Logout
+            </a>
+            {{ else }}
+            <a style="color: white" class="nav-item nav-link" href="/signup">
+                <i class=" far fa-user-plus"></i> Sign Up
+            </a>
+            <a style="color: white" class="nav-item nav-link" href="/login">
+                <i class=" far fa-sign-in-alt"></i></span> Login
+            </a>
+            {{ end }}
+        </div>
+    </nav>
+
     {{ block "content" .}}
     {{ end }}
 

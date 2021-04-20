@@ -1,16 +1,15 @@
-// Create a Vue application
-// const app = Vue.createApp({})
+// Display Grocery list search results
+// written by: Maxwell Legrand
+// tested by: Indrasish Moitra
+// debugged by: Brandon Luong
+
 const { SearchQuery } = require('./token_pb');
 const { ServerClient } = require('./token_grpc_web_pb');
 import Cookies from 'js-cookie'
 
-console.log("loaded")
-console.log(id)
-
 // Define a new global component called button-counter
 Vue.component('groceryresults', {
     data() {
-
         return {
             address: null,
             monday: null,
@@ -24,6 +23,7 @@ Vue.component('groceryresults', {
             results: []
         }
     },
+    // On creation, get list of items and the information about the closest walmart store
     created() {
         let self = this;
         let url = window.location.origin
@@ -58,6 +58,7 @@ Vue.component('groceryresults', {
             console.log(self.address)
         });
     },
+    // Display the content
     template: `
     <div>
         <br>
@@ -123,5 +124,4 @@ Vue.component('groceryresults', {
     `
 })
 
-// app.mount('#pantryDiv')
 new Vue({ el: '#pantryDiv' })

@@ -1,11 +1,13 @@
 // Pull user data via GRPC request and dynamically modify recipe request form
+// written by: Brandon Luong
+// tested by: Indrasish Moitra
+// debugged by: Shreyas Heragu
 
 const { Token } = require('./token_pb');
 const { ServerClient } = require('./token_grpc_web_pb');
 import Cookies from 'js-cookie'
 
 
-// Define a new global component called button-counter
 Vue.component('recipe', {
     data() {
 
@@ -17,6 +19,7 @@ Vue.component('recipe', {
             intolerances: []
         }
     },
+    // Handle tag input
     methods: {
         checkInputs: function (e) {
             if (this.selected.length == 0 && $("#additionalIngredients").val() == "") {
@@ -42,6 +45,7 @@ Vue.component('recipe', {
             event.preventDefault()
         }
     },
+    // Get pantry information and user information regarding diet / intolerances
     created() {
         let self = this;
         let url = window.location.origin
@@ -138,6 +142,10 @@ Vue.component('recipe', {
                         <div class="form-group" style="width: 100%">
                             <input v-on:keyup.enter="stopInput" type="text" class="form-control" id="additionalIngredients" aria-describedby="emailHelp" name="additionalIngredients" data-role="tagsinput">
                         </div>
+                        <h2>Excluded Ingredients</h2>
+                        <div class="excludedIngredients form-group" style="width: 100%">
+                            <input v-on:keyup.enter="stopInput" type="text" class="form-control" id="excludedIngredients" aria-describedby="emailHelp" name="excludedIngredients" data-role="tagsinput">
+                        </div>
                         <h2>Specific Cuisines</h2>
                         <div class="form-group" style="width: 100%">
                             <select style="width: 100% !important" id="cuisine" name="cuisines" class="selectpicker form-control"
@@ -222,11 +230,14 @@ Vue.component('recipe', {
         `
 })
 
-// app.mount('#pantryDiv')
 let app = new Vue({ el: '#recipeDiv' })
 
+// Setup tag inputs
 $(document).ready(function () {
     $('#additionalIngredients').tagsinput({
+        cancelConfirmKeysOnEmpty: true
+    });
+    $('#excludedIngredients').tagsinput({
         cancelConfirmKeysOnEmpty: true
     });
     $('#tags-input').tagsinput({
@@ -247,6 +258,9 @@ $(document).ready(function () {
     });
     $('#additionalIngredients').on('itemAdded', function (event) {
         $('#additionalIngredients').tagsinput('refresh');
+    });
+    $('#excludedIngredients').on('itemAdded', function (event) {
+        $('#excludedIngredients').tagsinput('refresh');
     });
     $('#cuisine').selectpicker();
 })

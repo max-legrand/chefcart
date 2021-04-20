@@ -1,0 +1,44 @@
+<!-- Add grocery form -->
+<!-- written by: Elysia Heah -->
+<!-- tested by: Mark Stanik -->
+<!-- debugged by: Brandon Luong -->
+
+{{ define "content" }}
+
+<style>
+    a {
+        text-decoration: none !important;
+    }
+</style>
+<div class="container-fluid">
+
+    <br>
+    <div class="row">
+
+        <div class="col-1"></div>
+        <div class="col-10">
+            <h1>Add grocery item</h1>
+            <form action="/addGrocery" method="POST">
+                <div class="form-group">
+                    <label for="Name">Item Name</label>
+                    <input type="text" class="form-control" id="Name" placeholder="Name" name="Name" required>
+                </div>
+                <div class="form-group">
+                    <label for="Image">Image Link</label>
+                    <input type="text" class="form-control" id="Image" value="Default" name="Image">
+                    <small id="ImageHelp" class="form-text text-muted">Enter custom image link. Enter "Default" for
+                        default image if applicable. Leave blank for no image.</small>
+                </div>
+                <br>
+                <button type="submit" class="btn btn-primary">Add item</button>
+            </form>
+            <br>
+            <a href="/pantry" class="btn btn-primary" role="button">Back</a>
+        </div>
+    </div>
+    <br>
+    <br>
+
+</div>
+
+{{end}}
