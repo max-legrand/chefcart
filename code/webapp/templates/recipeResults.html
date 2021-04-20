@@ -1,4 +1,8 @@
 <!-- Template for displaying recipes  -->
+<!-- written by: Allen Chang -->
+<!-- tested by: Mark Stanik -->
+<!-- debugged by: Kevin Lin -->
+
 {{ define "content" }}
 
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
@@ -9,7 +13,7 @@
 </div>
 
 <script>
-    let dataarray = {{.recipes }}
+    let dataarray = {{ .recipes }}
 </script>
 
 <script type="text/javascript" src="js/recipeResults.js"></script>

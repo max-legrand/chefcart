@@ -1,11 +1,12 @@
 // Retrieve pantry items for user via GRPC request and display with Vue.js component
+// written by: Mark Stanik
+// tested by: Maxwell Legrand
+// debugged by: Elysia Heah
 
 const { Token } = require('./token_pb');
 const { ServerClient } = require('./token_grpc_web_pb');
 import Cookies from 'js-cookie'
 
-
-// Define a new global component called button-counter
 Vue.component('pantry', {
     data() {
 
@@ -16,6 +17,7 @@ Vue.component('pantry', {
             foodName: ""
         }
     },
+    // Get pantry items and display them to the user along with any potential warnings regarding stock and expiration
     created() {
         this.foodName = foodName
         let self = this;
@@ -59,7 +61,6 @@ Vue.component('pantry', {
                     self.lowItems.push(element)
                 }
             });
-
         });
     },
     template: `
@@ -124,5 +125,4 @@ Vue.component('pantry', {
     `
 })
 
-// app.mount('#pantryDiv')
 new Vue({ el: '#pantryDiv' })

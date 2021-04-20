@@ -2,6 +2,9 @@
 Package controller ...
 	Gets login data from form and binds to Go Struct
 */
+// written by: Indrasish Moitra
+// tested by: Jonathan Wong
+// debugged by: Elysia Heah
 package controller
 
 import (

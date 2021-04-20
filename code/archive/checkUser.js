@@ -1,11 +1,14 @@
 // Determine if user is logged in via GRPC request & display dynamic landing page with Vue.js
+// written by: Jonathan Wong
+// tested by: Allen Chang
+// debugged by: Elysia Heah
+
 
 const { Token } = require('./token_pb');
 const { ServerClient } = require('./token_grpc_web_pb');
 import Cookies from 'js-cookie'
 
 
-// Define a new global component called button-counter
 Vue.component('welcome-comp', {
     data() {
         return {
@@ -13,6 +16,7 @@ Vue.component('welcome-comp', {
             isMobile: false,
         }
     },
+    // On creation, get token cookie, check if user is authenticated and if so set the username value
     created() {
         let self = this;
         let url = window.location.origin
@@ -41,6 +45,7 @@ Vue.component('welcome-comp', {
             }
         });
     },
+    // Display web content
     template: `
     <div class="container-fluid">
             <div v-if="isMobile" class="row">
@@ -97,5 +102,4 @@ Vue.component('welcome-comp', {
     `
 })
 
-// app.mount('#welcomeDiv')
 new Vue({ el: '#welcomeDiv' })

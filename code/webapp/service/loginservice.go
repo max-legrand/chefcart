@@ -2,6 +2,9 @@
 Package service ...
 	Verifies login data and determeines if user exists in database
 */
+// written by: Allen Chang
+// tested by: Maxwell Legrand
+// debugged by: Shreyas Heragu
 package service
 
 import (

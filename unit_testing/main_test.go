@@ -2,6 +2,9 @@
 Package main_test ...
 	tests the funcitonality of the other program components
 */
+
+// All members have contributed to writing, testing, and debugging this file.
+// Individual contributions can be found above functions
 package main_test
 
 //search recipes
@@ -30,6 +33,9 @@ import (
 
 var tokenString string
 
+// written by: Allen Chang
+// tested by: Kevin Lin
+// debugged by: Jonathan Wong
 func TestSignup(t *testing.T) {
 	models.ConnectDB()
 	email := "unit_test_user@unittest.com"
@@ -59,6 +65,9 @@ func TestSignup(t *testing.T) {
 	}
 }
 
+// written by: Mark Stanik
+// tested by: Shreyas Heragu
+// debugged by: Indrasish Moitra
 func TestLogin(t *testing.T) {
 	jwtService := service.JWTAuthService()
 	loginController := controller.LoginHandler(jwtService)
@@ -74,6 +83,9 @@ func TestLogin(t *testing.T) {
 	}
 }
 
+// written by: Brandon Luong
+// tested by: Allen Chang
+// debugged by: Elysia Heah
 func TestAuthUser(t *testing.T) {
 	// demo_user_unit_test@unittest.com
 	// demo_user_unit_test
@@ -89,6 +101,9 @@ func TestAuthUser(t *testing.T) {
 	}
 }
 
+// written by: Maxwell Legrand
+// tested by: Milos Seskar
+// debugged by: Mark Stanik
 func TestEditUser(t *testing.T) {
 	input := Tokens.Token{Token: tokenString}
 	result, err := webapp.AuthUserUnwrapped(&input)
@@ -120,6 +135,9 @@ func TestEditUser(t *testing.T) {
 	}
 }
 
+// written by: Brandon Luong
+// tested by: Kevin Lin
+// debugged by: Milos Seskar
 func TestGetPantry(t *testing.T) {
 	results, err := webapp.GetPantryUnwrapped(&Tokens.Token{Token: tokenString})
 	if err != nil && err.Error() == "Invalid user" {
@@ -130,6 +148,9 @@ func TestGetPantry(t *testing.T) {
 	}
 }
 
+// written by: Elysia Heah
+// tested by: Allen Chang
+// debugged by: Shreyas Heragu
 func TestAddPantry(t *testing.T) {
 	results, err := webapp.AuthUserUnwrapped(&Tokens.Token{Token: tokenString})
 	if err != nil && err.Error() == "Invalid user" {
@@ -210,6 +231,9 @@ func TestAddPantry(t *testing.T) {
 	}
 }
 
+// written by: Indrasish Moitra
+// tested by: Jonathan Wong
+// debugged by: Brandon Luong
 func TestVerifyFood(t *testing.T) {
 	name := "car"
 
@@ -256,6 +280,9 @@ func TestVerifyFood(t *testing.T) {
 	}
 }
 
+// written by: Mark Stanik
+// tested by: Maxwell Legrand
+// debugged by: Jonathan Wong
 func TestEditItem(t *testing.T) {
 	results, err := webapp.AuthUserUnwrapped(&Tokens.Token{Token: tokenString})
 	if err == nil && results.Token != "" {
@@ -288,6 +315,9 @@ func TestEditItem(t *testing.T) {
 	}
 }
 
+// written by: Indrasish Moitra
+// tested by: Allen Chang
+// debugged by: Maxwell Legrand
 func TestDelete(t *testing.T) {
 	results, err := webapp.AuthUserUnwrapped(&Tokens.Token{Token: tokenString})
 	if err == nil && results.Token != "" {
@@ -315,6 +345,9 @@ func TestDelete(t *testing.T) {
 	}
 }
 
+// written by: Kevin Lin
+// tested by: Elysia Heah
+// debugged by: Mark Stanik
 func TestFindRecipes(t *testing.T) {
 	godotenv.Load(".env")
 	ingredients := "cheese"
@@ -354,6 +387,9 @@ func TestFindRecipes(t *testing.T) {
 	}
 }
 
+// written by: Shreyas Heragu
+// tested by: Brandon Luong
+// debugged by: Milos Seskar
 func TestGroceries(t *testing.T) {
 	results, err := webapp.AuthUserUnwrapped(&Tokens.Token{Token: tokenString})
 	user := models.User{}
@@ -382,6 +418,9 @@ func TestGroceries(t *testing.T) {
 	fmt.Println("Succesfully retrieved groceries")
 }
 
+// written by: Maxwell Legrand
+// tested by: Milos Seskar
+// debugged by: Brandon Luong
 func TestGroceriesResults(t *testing.T) {
 	results, _ := webapp.AuthUserUnwrapped(&Tokens.Token{Token: tokenString})
 	user := models.User{}

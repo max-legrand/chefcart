@@ -1,10 +1,10 @@
 <!-- Base template -->
+<!-- written by: Milos Seskar -->
+<!-- tested by: Maxwell Legrand -->
+<!-- debugged by: Mark Stanik -->
 
 <!DOCTYPE html>
 <html lang="en">
-<!-- <script type="text/javascript">
-    document.write("<base href='http://" + document.location.host + "/' />");
-</script> -->
 
 <head>
     <meta charset="utf-8">
@@ -65,11 +65,7 @@
             {{ end }}
         </div>
     </nav>
-    <!-- <script>
-        window.__VUE_DEVTOOLS_HOST__ = '192.168.86.44' // default: localhost
-        window.__VUE_DEVTOOLS_PORT__ = '8098' // default: 8098
-    </script>
-    <script src="http://192.168.86.44:8098"></script> -->
+
     {{ block "content" .}}
     {{ end }}
 

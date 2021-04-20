@@ -1,4 +1,7 @@
 // Pull results and generate dynamic content for recipe data
+// written by: Allen Chang
+// tested by: Milos Seskar
+// debugged by: Kevin Lin
 
 // Define a new global component called button-counter
 Vue.component('recipeobj', {

@@ -1,3 +1,6 @@
+// Protobuf message file
+// written by: Brandon Luong
+
 syntax="proto3";
 package main;
 option go_package = ".;Tokens";

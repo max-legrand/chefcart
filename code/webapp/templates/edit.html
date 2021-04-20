@@ -1,4 +1,7 @@
 <!-- Template for editing user information -->
+<!-- written by: Allen Chang -->
+<!-- tested by: Shreyas Heragu -->
+<!-- debugged by: Kevin Lin -->
 
 {{ define "content" }}
 
@@ -156,14 +159,6 @@
                 if (codes.length > 0) {
                     this.submit()
                 }
-                // if (result["postalCodes"].length > 0) {
-                //     isValid = true
-                // }
-                // alert("pausing")
-                // if (!isValid) {
-                //     alert("Please enter a valid location")
-                //     e.preventDefault();
-                // }
             })
             .catch(error => console.log('error', error));
 

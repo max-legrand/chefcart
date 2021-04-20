@@ -2,6 +2,10 @@
 Package webapp ...
 	Runs webserver and displays content
 */
+
+// All members have contributed to writing, testing, and debugging this file.
+// Individual contributions can be found above functions
+
 package webapp
 
 import (
@@ -40,6 +44,9 @@ import (
 )
 
 // Layers base template with relevant files
+// written by: Mark Stanik
+// tested by: Brandon Luong
+// debugged by: Shreyas Heragu
 func tempRender() multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
 	r.AddFromFiles("index", "webapp/templates/base.html", "webapp/templates/welcome.html")
@@ -71,6 +78,9 @@ func NewServer() *Server {
 }
 
 // AuthUser - verify user is valid from encrypted jtw token
+// written by: Kevin Lin
+// tested by: Maxwell Legrand
+// debugged by: Allen Chang
 func (c *Server) AuthUser(ctx context.Context, in *Tokens.Token) (*Tokens.Token, error) {
 	token, valid := middleware.ValidTokenGRPC(in)
 	if valid {
@@ -84,6 +94,9 @@ func (c *Server) AuthUser(ctx context.Context, in *Tokens.Token) (*Tokens.Token,
 }
 
 // GetPantry - get pantry items for user
+// written by: Maxwell Legrand
+// tested by: Jonathan Wong
+// debugged by: Elysia Heah
 func (c *Server) GetPantry(ctx context.Context, in *Tokens.Token) (*Tokens.Pantry, error) {
 	token, valid := middleware.ValidTokenGRPC(in)
 	if valid {
@@ -113,7 +126,10 @@ func (c *Server) GetPantry(ctx context.Context, in *Tokens.Token) (*Tokens.Pantr
 	return &Tokens.Pantry{}, nil
 }
 
-// GetGroceries ...
+// GetGroceries - get grocery list for user
+// written by: Indrasish Moitra
+// tested by: Jonathan Wong
+// debugged by: Elysia Heah
 func (c *Server) GetGroceries(ctx context.Context, in *Tokens.Token) (*Tokens.Pantry, error) {
 	token, valid := middleware.ValidTokenGRPC(in)
 	if valid {
@@ -138,7 +154,10 @@ func (c *Server) GetGroceries(ctx context.Context, in *Tokens.Token) (*Tokens.Pa
 	return &Tokens.Pantry{}, nil
 }
 
-// GetUserInfo ...
+// GetUserInfo - fetch and return user info
+// written by: Allen Chang
+// tested by: Mark Stanik
+// debugged by: Brandon Luong
 func (c *Server) GetUserInfo(ctx context.Context, in *Tokens.Token) (*Tokens.UserInfo, error) {
 	token, valid := middleware.ValidTokenGRPC(in)
 	if valid {
@@ -157,12 +176,14 @@ func (c *Server) GetUserInfo(ctx context.Context, in *Tokens.Token) (*Tokens.Use
 	return &Tokens.UserInfo{}, nil
 }
 
-// GetSearchResults ...
+// GetSearchResults - get search results for grocery list
+// written by: Maxwell Legrand
+// tested by: Kevin Lin
+// debugged by: Indrasish Moitra
 func (c *Server) GetSearchResults(ctx context.Context, in *Tokens.SearchQuery) (*Tokens.Store, error) {
 	tokenStruct := &Tokens.Token{Token: in.Token}
 	token, valid := middleware.ValidTokenGRPC(tokenStruct)
 	if valid {
-		// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
 		user := models.User{}
 		userinfo := models.UserInfo{}
 		pantry := models.Grocery{}
@@ -173,7 +194,7 @@ func (c *Server) GetSearchResults(ctx context.Context, in *Tokens.SearchQuery) (
 		if result.RowsAffected == 0 {
 			return &Tokens.Store{}, errors.New("Item does not belong to you")
 		}
-
+		// Get users postal code from their profile information
 		url := "http://api.geonames.org/postalCodeSearchJSON?username=malaow3&placename=" + strings.ReplaceAll(userinfo.City, " ", "%20") + ",%20" + userinfo.State + "&placename_startsWith=" + strings.ReplaceAll(userinfo.City, " ", "%20") + "&maxRows=1&countryBias=US"
 		fmt.Println(url)
 		postalJSON := getFromURL(url, "")
@@ -185,6 +206,7 @@ func (c *Server) GetSearchResults(ctx context.Context, in *Tokens.SearchQuery) (
 		url = "https://www.walmart.com/grocery/v4/api/serviceAvailability?postalCode=" + postalCode
 		walmartStores := getFromURL(url, "store")
 
+		// Get closests walmart store information
 		stores := gjson.Get(walmartStores, "accessPointList").Array()
 		var myStore gjson.Result
 		if len(stores) == 0 {
@@ -207,6 +229,7 @@ func (c *Server) GetSearchResults(ctx context.Context, in *Tokens.SearchQuery) (
 		storeResult.Sunday = myStore.Get("workHours.sunday").String()
 		storeResult.Distance = myStore.Get("distance").String()
 		storeID := myStore.Get("dispenseStoreId").String()
+		// Search for products from walmart store
 		url = "https://www.walmart.com/grocery/v4/api/products/search?count=25&offset=0&page=1&storeId=" + storeID + "&query=" + pantry.Name
 		foodJSON := getFromURL(url, "food")
 		foodArray := gjson.Get(foodJSON, "products").Array()
@@ -230,7 +253,8 @@ func (c *Server) GetSearchResults(ctx context.Context, in *Tokens.SearchQuery) (
 
 }
 
-// LaunchServer ...
+// LaunchServer - run webserver
+// All members worked on this function, individual contributions will be outlined in the routes
 func LaunchServer() {
 
 	// JWT login setup
@@ -262,6 +286,9 @@ func LaunchServer() {
 	router.Use(mobile.Resolver())
 
 	// NOTE : Get index page
+	// written by: Shreyas Heragu
+	// tested by: Jonathan Wong
+	// debugged by: Mark Stanik
 	router.GET("/", func(c *gin.Context) {
 		// Serve index.html
 		message := authuser(c)
@@ -273,17 +300,25 @@ func LaunchServer() {
 	})
 
 	// NOTE : Present not found page
+	// written by: Allen Chang
+	// tested by: Milos Seskar
+	// debugged by: Shreyas Heragu
 	router.GET("/notfound/:type", func(c *gin.Context) {
 		// Get type url parameter
 		// If param = "login" -> present invalid credentials, else present username already exists
 		if c.Param("type") == "login" {
-			c.HTML(200, "notfound", gin.H{"text": "Invalid credentials"})
+			c.HTML(200, "notfound", gin.H{"text": "Invalid credentials", "back": "/login"})
+		} else if c.Param("type") == "password" {
+			c.HTML(200, "notfound", gin.H{"text": "Invalid password", "back": "/changePassword"})
 		} else {
-			c.HTML(200, "notfound", gin.H{"text": "User already exists"})
+			c.HTML(200, "notfound", gin.H{"text": "User already exists", "back": "/signup"})
 		}
 	})
 
 	// NOTE : Present the signup form
+	// written by: Kevin Lin
+	// tested by: Brandon Luong
+	// debugged by: Jonathan Wong
 	router.GET("/signup", func(c *gin.Context) {
 		d := mobile.GetDevice(c)
 		isMobile := false
@@ -294,6 +329,9 @@ func LaunchServer() {
 	})
 
 	// NOTE : Present the login form
+	// written by: Elysia Heah
+	// tested by: Shreyas Heragu
+	// debugged by: Indrasish Moitra
 	router.GET("/login", func(c *gin.Context) {
 		d := mobile.GetDevice(c)
 		isMobile := false
@@ -304,6 +342,9 @@ func LaunchServer() {
 	})
 
 	// NOTE : Perform signup user logic
+	// written by: Indrasish Moitra
+	// tested by: Mark Stanik
+	// debugged by: Shreyas Heragu
 	router.POST("/signup_user", func(c *gin.Context) {
 		email := c.PostForm("Email")
 		password := c.PostForm("Password")
@@ -325,6 +366,7 @@ func LaunchServer() {
 	})
 
 	// NOTE : Perform user login logic
+	// written by: Allen Chang
 	router.POST("/login_user", func(c *gin.Context) {
 		// Generate token
 		token := getLoginToken(loginController, c)
@@ -334,6 +376,9 @@ func LaunchServer() {
 	})
 
 	// NOTE : Display user edit form
+	// written by: Elysia Heah
+	// tested by: Brandon Luong
+	// debugged by: Kevin Lin
 	router.GET("/useredit", func(c *gin.Context) {
 		// Generate token
 		d := mobile.GetDevice(c)
@@ -356,6 +401,9 @@ func LaunchServer() {
 	})
 
 	// NOTE : Perform edit user info logic
+	// written by: Milos Seskar
+	// tested by: Elysia Heah
+	// debugged by: Allen Chang
 	router.POST("/edit_user", func(c *gin.Context) {
 		// Generate token
 		message := authuser(c)
@@ -378,14 +426,16 @@ func LaunchServer() {
 			userinfo.Diets = diets
 			models.DB.Save(&user)
 			models.DB.Save(&userinfo)
-			c.SetCookie("token", "", -1, "/", "", false, false)
-			getLoginToken(loginController, c)
+			// c.SetCookie("token", "", -1, "/", "", false, false)
+			// getLoginToken(loginController, c)
+			c.Redirect(http.StatusFound, "/")
 			return
 		}
 		c.Redirect(http.StatusFound, "/login")
 	})
 
 	// NOTE : Logout user
+	// written by: Mark Stanik
 	router.GET("/logout", func(c *gin.Context) {
 		// delete token cookie and send home
 		c.SetCookie("token", "", -1, "/", "", false, false)
@@ -393,6 +443,9 @@ func LaunchServer() {
 	})
 
 	// NOTE : Digital pantry logic
+	// written by: Brandon Luong
+	// tested by: Jonathan Wong
+	// debugged by: Maxwell Legrand
 	router.GET("/pantry", func(c *gin.Context) {
 		// Generate token
 		message := authuser(c)
@@ -404,13 +457,6 @@ func LaunchServer() {
 			}
 			store.Delete("invalidFood")
 			store.Save()
-			// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
-			// user := models.User{}
-			// pantry := []models.Ingredient{}
-			// models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
-			// models.DB.Order("expiration asc").Find(&pantry, "uid = ?", user.ID)
-			// fmt.Println(pantry)
-			// c.HTML(200, "pantry", gin.H{"userobj": user, "pantry": pantry})
 			c.HTML(200, "pantry", gin.H{"userobj": message.Claims.(jwt.MapClaims)["name"], "foodName": foodName.(string)})
 			return
 		}
@@ -418,6 +464,9 @@ func LaunchServer() {
 	})
 
 	// NOTE : Display recipe request form
+	// written by: Kevin Lin
+	// tested by: Shreyas Heragu
+	// debugged by: Indrasish Moitra
 	router.GET("/recipe", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -433,6 +482,9 @@ func LaunchServer() {
 	})
 
 	// NOTE : Perform recipe search
+	// written by: Maxwell Legrand
+	// tested by: Milos Seskar
+	// debugged by: Elysia Heah
 	router.POST("/recipeSearch", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -544,6 +596,8 @@ func LaunchServer() {
 	})
 
 	// NOTE : Display add item form
+	// written by: Allen Chang
+	// tested by: Kevin Lin
 	router.GET("/additem", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -555,6 +609,9 @@ func LaunchServer() {
 	})
 
 	// NOTE : Add item logic
+	// written by: Maxwell Legrand
+	// tested by: Jonathan Wong
+	// debugged by: Milos Seskar
 	router.POST("/additem", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -705,6 +762,9 @@ func LaunchServer() {
 	})
 
 	// NOTE : Display edit pantry item form
+	// written by: Shreyas Heragu
+	// tested by: Mark Stanik
+	// debugged by: Maxwell Legrand
 	router.GET("/edit/:id", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -753,6 +813,9 @@ func LaunchServer() {
 	})
 
 	// NOTE : Delete pantry item
+	// written by: Indrasish Moitra
+	// tested by: Brandon Luong
+	// debugged by: Jonathan Wong
 	router.GET("/delete/:id", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -774,6 +837,9 @@ func LaunchServer() {
 	})
 
 	// NOTE : Perform item edit
+	// written by: Allen Chang
+	// tested by: Maxwell Legrand
+	// debugged by: Mark Stanik
 	router.POST("/edit/:id", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -879,6 +945,9 @@ func LaunchServer() {
 	})
 
 	// NOTE : Display Grocery list items
+	// written by: Milos Seskar
+	// tested by: Brandon Luong
+	// debugged by: Indrasish Moitra
 	router.GET("/grocery", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -896,6 +965,8 @@ func LaunchServer() {
 	})
 
 	// NOTE : Add grocery list item
+	// written by: Shreyas Heragu
+	// tested by: Kevin Lin
 	router.GET("/addGrocery", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -906,6 +977,9 @@ func LaunchServer() {
 	})
 
 	// NOTE : Add grocery list item logic
+	// written by: Milos Seskar
+	// tested by: Elysia Heah
+	// debugged by: Indrasish Moitra
 	router.POST("/addGrocery", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -1017,6 +1091,9 @@ func LaunchServer() {
 	})
 
 	// NOTE : Delete grocery list item
+	// written by: Jonathan Wong
+	// tested by: Kevin Lin
+	// debugged by: Shreyas Heragu
 	router.GET("/deleteGrocery/:id", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -1038,6 +1115,9 @@ func LaunchServer() {
 	})
 
 	// NOTE : Search for grocery list item
+	// written by: Brandon Luong
+	// tested by: Allen Chang
+	// debugged by: Elysia Heah
 	router.GET("/search/:id", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -1059,7 +1139,10 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
-	// NOTE : Edit password
+	// NOTE : Edit password display
+	// written by: Mark Stanik
+	// tested by: Kevin Lin
+	// debugged by: Allen Chang
 	router.GET("/changePassword", func(c *gin.Context) {
 		d := mobile.GetDevice(c)
 		isMobile := false
@@ -1077,6 +1160,10 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
+	// NOTE: Edit password logic
+	// written by: Elysia Heah
+	// tested by: Shreyas Heragu
+	// debugged by: Indrasish Moitra
 	router.POST("/changePassword", func(c *gin.Context) {
 		message := authuser(c)
 		if message != nil {
@@ -1089,7 +1176,7 @@ func LaunchServer() {
 			user := models.User{}
 			models.DB.Where("email = ?", message.Claims.(jwt.MapClaims)["name"]).First(&user)
 			if user.Password != password {
-				c.Redirect(http.StatusFound, "/notfound/login")
+				c.Redirect(http.StatusFound, "/notfound/password")
 				return
 			}
 			newPass := c.PostForm("Password")
@@ -1109,6 +1196,10 @@ func LaunchServer() {
 	router.Run()
 }
 
+// Get contents from URL
+// written by: Maxwell Legrand
+// tested by: Jonathan Wong
+// debugged by: Milos Seskar
 func getFromURL(url string, walmart string) string {
 	method := "GET"
 
@@ -1164,6 +1255,9 @@ func getFromURL(url string, walmart string) string {
 }
 
 // Determine if date is in a valid format
+// written by: Mark Stanik
+// tested by: Elysia Heah
+// debugged by: Shreyas Heragu
 func invalidDate(dateString string) bool {
 	monthsplit := strings.Index(dateString, "/")
 	month := dateString[0:monthsplit]
@@ -1184,6 +1278,9 @@ func invalidDate(dateString string) bool {
 }
 
 // Get the login token from a gin context and verify its integrity
+// written by: Brandon Luong
+// tested by: Milos Seskar
+// debugged by: Indrasish Moitra
 func getLoginToken(loginController controller.LoginController, c *gin.Context) string {
 	token := loginController.Login(c)
 	if token != "" {
@@ -1205,21 +1302,18 @@ func getLoginToken(loginController controller.LoginController, c *gin.Context) s
 }
 
 // Determine if a user is properly authenticated
+// written by: Maxwell Legrand
+// tested by: Kevin Lin
+// debugged by: Jonathan Wong
 func authuser(c *gin.Context) *jwt.Token {
 	token, valid := middleware.ValidToken(c)
 	// If valid send username from JWT
 	if valid {
 		isUserAuthenticated, _ := service.LoginUser(token.Claims.(jwt.MapClaims)["name"].(string), token.Claims.(jwt.MapClaims)["pass"].(string))
 		if isUserAuthenticated {
-			// message := &protobuf.Token{Token: token.Claims.(jwt.MapClaims)["name"].(string)}
-			// data, _ := proto.Marshal(message)
-			// stringarray := fmt.Sprint(data)
-			// stringarray = stringarray[1 : len(stringarray)-1]
 			return token
 		}
 
 	}
-	// If not, send empty string
-	// message := &protobuf.Token{Token: ""}
 	return nil
 }

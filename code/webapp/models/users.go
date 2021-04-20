@@ -2,6 +2,9 @@
 Package models ...
 	Utilizes (G)ORM to convert database entries into usable Go Structs
 */
+// written by: Elysia Heah
+// tested by: Jonathan Wong
+// debugged by: Indrasish Moitra
 package models
 
 import (

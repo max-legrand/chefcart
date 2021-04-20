@@ -1,11 +1,13 @@
 // Pull user data via GRPC request and dynamically modify recipe request form
+// written by: Brandon Luong
+// tested by: Indrasish Moitra
+// debugged by: Shreyas Heragu
 
 const { Token } = require('./token_pb');
 const { ServerClient } = require('./token_grpc_web_pb');
 import Cookies from 'js-cookie'
 
 
-// Define a new global component called button-counter
 Vue.component('recipe', {
     data() {
 
@@ -17,6 +19,7 @@ Vue.component('recipe', {
             intolerances: []
         }
     },
+    // Handle tag input
     methods: {
         checkInputs: function (e) {
             if (this.selected.length == 0 && $("#additionalIngredients").val() == "") {
@@ -42,6 +45,7 @@ Vue.component('recipe', {
             event.preventDefault()
         }
     },
+    // Get pantry information and user information regarding diet / intolerances
     created() {
         let self = this;
         let url = window.location.origin
@@ -226,9 +230,9 @@ Vue.component('recipe', {
         `
 })
 
-// app.mount('#pantryDiv')
 let app = new Vue({ el: '#recipeDiv' })
 
+// Setup tag inputs
 $(document).ready(function () {
     $('#additionalIngredients').tagsinput({
         cancelConfirmKeysOnEmpty: true
