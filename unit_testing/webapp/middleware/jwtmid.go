@@ -3,6 +3,9 @@ Package middleware ...
 	Used to Encrypt / Decrypt session tokens from cookies with AES
 	and verify JWT is still valid
 */
+// written by: Maxwell Legrand
+// tested by: Brandon Luong
+// debugged by: Mark Stanik
 package middleware
 
 import (

@@ -2,6 +2,8 @@
 Package webapp ...
 	Runs webserver and displays content
 */
+// All members have contributed to writing, testing, and debugging this file.
+// Individual contributions can be found above functions
 package webapp
 
 import (
@@ -19,31 +21,15 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	"google.golang.org/protobuf/proto"
 )
 
-// Layers base template with relevant files
-func tempRender() multitemplate.Renderer {
-	r := multitemplate.NewRenderer()
-	r.AddFromFiles("index", "webapp/templates/base.html", "webapp/templates/welcome.html")
-	r.AddFromFiles("signup", "webapp/templates/base.html", "webapp/templates/signup.html")
-	r.AddFromFiles("login", "webapp/templates/base.html", "webapp/templates/login.html")
-	r.AddFromFiles("edit", "webapp/templates/base.html", "webapp/templates/edit.html")
-	r.AddFromFiles("notfound", "webapp/templates/base.html", "webapp/templates/notfound.html")
-	r.AddFromFiles("pantry", "webapp/templates/base.html", "webapp/templates/pantry.html")
-	r.AddFromFiles("additem", "webapp/templates/base.html", "webapp/templates/additem.html")
-	r.AddFromFiles("edititem", "webapp/templates/base.html", "webapp/templates/edititem.html")
-	r.AddFromFiles("recipe", "webapp/templates/base.html", "webapp/templates/recipe.html")
-	r.AddFromFiles("recipeResults", "webapp/templates/base.html", "webapp/templates/recipeResults.html")
-	// r.AddFromFiles("about", "templates/base.html", "templates/about.html")
-	// r.AddFromFilesFuncs("about", template.FuncMap{"mod": func(i, j int) bool { return i%j == 0 }}, "templates/base.html", "templates/about.html")
-	return r
-}
-
 // AuthUserUnwrapped - Unwrapped version of AuthUser function to be used for testing purpouses
+// written by: Kevin Lin
+// tested by: Maxwell Legrand
+// debugged by: Allen Chang
 func AuthUserUnwrapped(in *Tokens.Token) (*Tokens.Token, error) {
 	token, valid := middleware.ValidTokenGRPC(in)
 	if valid {
@@ -57,6 +43,9 @@ func AuthUserUnwrapped(in *Tokens.Token) (*Tokens.Token, error) {
 }
 
 // GetGroceries - return grocerys for user
+// written by: Indrasish Moitra
+// tested by: Jonathan Wong
+// debugged by: Elysia Heah
 func GetGroceries(in *Tokens.Token) (*Tokens.Pantry, error) {
 	token, valid := middleware.ValidTokenGRPC(in)
 	if valid {
@@ -82,6 +71,9 @@ func GetGroceries(in *Tokens.Token) (*Tokens.Pantry, error) {
 }
 
 // GetSearchResults - returns results for grocery inquiry
+// written by: Maxwell Legrand
+// tested by: Kevin Lin
+// debugged by: Indrasish Moitra
 func GetSearchResults(in *Tokens.SearchQuery) (*Tokens.Store, error) {
 	tokenStruct := &Tokens.Token{Token: in.Token}
 	token, valid := middleware.ValidTokenGRPC(tokenStruct)
@@ -155,6 +147,9 @@ func GetSearchResults(in *Tokens.SearchQuery) (*Tokens.Store, error) {
 }
 
 // GetPantryUnwrapped - get pantry items for user without grpc wrapper
+// written by: Maxwell Legrand
+// tested by: Jonathan Wong
+// debugged by: Elysia Heah
 func GetPantryUnwrapped(in *Tokens.Token) (*Tokens.Pantry, error) {
 	token, valid := middleware.ValidTokenGRPC(in)
 	if valid {
@@ -184,6 +179,9 @@ func GetPantryUnwrapped(in *Tokens.Token) (*Tokens.Pantry, error) {
 }
 
 // Determine if date is in a valid format
+// written by: Mark Stanik
+// tested by: Elysia Heah
+// debugged by: Shreyas Heragu
 func invalidDate(dateString string) bool {
 	monthsplit := strings.Index(dateString, "/")
 	month := dateString[0:monthsplit]
@@ -204,6 +202,9 @@ func invalidDate(dateString string) bool {
 }
 
 //GetLoginToken - Get the login token from a gin context and verify its integrity
+// written by: Brandon Luong
+// tested by: Milos Seskar
+// debugged by: Indrasish Moitra
 func GetLoginToken(loginController controller.LoginController, c *gin.Context) string {
 	token := loginController.Login(c)
 	if token != "" {
@@ -225,6 +226,9 @@ func GetLoginToken(loginController controller.LoginController, c *gin.Context) s
 }
 
 // GetLoginTokenUnwrapped - login token function for use outside of gin webserver
+// written by: Brandon Luong
+// tested by: Milos Seskar
+// debugged by: Indrasish Moitra
 func GetLoginTokenUnwrapped(loginController controller.LoginController, username, password *Tokens.Token) string {
 	token := loginController.LoginTest(username, password)
 	if token != "" {
@@ -244,6 +248,9 @@ func GetLoginTokenUnwrapped(loginController controller.LoginController, username
 }
 
 // Determine if a user is properly authenticated
+// written by: Maxwell Legrand
+// tested by: Kevin Lin
+// debugged by: Jonathan Wong
 func authuser(c *gin.Context) *jwt.Token {
 	token, valid := middleware.ValidToken(c)
 	// If valid send username from JWT
@@ -263,6 +270,10 @@ func authuser(c *gin.Context) *jwt.Token {
 	return nil
 }
 
+// Get contents from URL
+// written by: Maxwell Legrand
+// tested by: Jonathan Wong
+// debugged by: Milos Seskar
 func getFromURL(url string, walmart string) string {
 	method := "GET"
 

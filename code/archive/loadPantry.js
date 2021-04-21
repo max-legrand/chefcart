@@ -33,6 +33,7 @@ Vue.component('pantry', {
             console.log(err)
             console.log(response.toObject())
             self.pantry = response.toObject().pantryList
+            // Corresponds to the THHandler
             self.pantry.forEach(element => {
                 let qThresh = element.quantitythreshold
                 let quantity = 0.0

@@ -21,7 +21,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-// UserInfo - struct for maintaining additional user information
+// UserInfo - struct for maintaining additional user information - corresponds to Account
 type UserInfo struct {
 	ID           int `gorm:"ForeignKey:ID"`
 	City         string
@@ -30,7 +30,7 @@ type UserInfo struct {
 	Intolerances pq.StringArray `gorm:"type:character varying[]"`
 }
 
-// User - struct to represent user object
+// User - struct to represent user object - corresponds to Account
 type User struct {
 	gorm.Model
 	Email    string
@@ -45,7 +45,7 @@ type Grocery struct {
 	ImageLink string
 }
 
-// Ingredient ...
+// Ingredient ... Corresponds to Digital Pantry
 type Ingredient struct {
 	gorm.Model
 	UID               uint `gorm:"ForeignKey:ID"`
@@ -58,7 +58,7 @@ type Ingredient struct {
 	QuantityThreshold float64
 }
 
-// DB ...
+// DB ... Corresponds to the DBHandler
 var DB *gorm.DB
 
 // ConnectDB - connect to the database and update the global database variable

@@ -2,6 +2,9 @@
 Package service ...
 	JWT setup and validation
 */
+// written by: Maxwell Legrand
+// tested by: Mark Stanik
+// debugged by: Milos Seskar
 package service
 
 import (

@@ -102,6 +102,7 @@ func (c *Server) GetPantry(ctx context.Context, in *Tokens.Token) (*Tokens.Pantr
 	if valid {
 		// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
 		user := models.User{}
+		// Corresponds to IngredientList
 		pantry := []models.Ingredient{}
 		models.DB.Where("email = ?", token.Claims.(jwt.MapClaims)["name"]).First(&user)
 		models.DB.Order("expiration asc").Find(&pantry, "uid = ?", user.ID)
@@ -135,6 +136,7 @@ func (c *Server) GetGroceries(ctx context.Context, in *Tokens.Token) (*Tokens.Pa
 	if valid {
 		// models.DB.Where("email = ? AND password = ?", email, password).Find(&users)
 		user := models.User{}
+		// Corresponds to GroceryList
 		pantry := []models.Grocery{}
 		models.DB.Where("email = ?", token.Claims.(jwt.MapClaims)["name"]).First(&user)
 		models.DB.Find(&pantry, "uid = ?", user.ID)
@@ -206,7 +208,7 @@ func (c *Server) GetSearchResults(ctx context.Context, in *Tokens.SearchQuery) (
 		url = "https://www.walmart.com/grocery/v4/api/serviceAvailability?postalCode=" + postalCode
 		walmartStores := getFromURL(url, "store")
 
-		// Get closests walmart store information
+		// Get closests walmart store information - corresponds to StoreFinder
 		stores := gjson.Get(walmartStores, "accessPointList").Array()
 		var myStore gjson.Result
 		if len(stores) == 0 {
@@ -218,6 +220,7 @@ func (c *Server) GetSearchResults(ctx context.Context, in *Tokens.SearchQuery) (
 				break
 			}
 		}
+		// Corresonds to GroceryStore
 		storeResult := Tokens.Store{}
 		storeResult.Address = myStore.Get("address.line1").String() + ", " + myStore.Get("address.city").String() + ", " + myStore.Get("address.state").String() + ", " + myStore.Get("address.postalCode").String()[0:5]
 		storeResult.Monday = myStore.Get("workHours.monday").String()
@@ -481,7 +484,7 @@ func LaunchServer() {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
-	// NOTE : Perform recipe search
+	// NOTE : Perform recipe search - corresponds to RecipeGenerator
 	// written by: Maxwell Legrand
 	// tested by: Milos Seskar
 	// debugged by: Elysia Heah
@@ -497,6 +500,7 @@ func LaunchServer() {
 				Cuisine               []string `form:"cuisine"`
 			}
 
+			// Corresponds to Recipe
 			type recipe struct {
 				Name      string
 				ID        string
@@ -515,7 +519,7 @@ func LaunchServer() {
 			}
 			offset := 0
 			resultsSeen := 0
-
+			// Corresponds to the SpoonacularHandler & IngChecker
 			url := "https://api.spoonacular.com/recipes/complexSearch?intolerances=" + strings.Join(formData.Intolerances, ",") + "&includeIngredients=" + ingredients + "&excludeIngredients=" + formData.ExcludedIngredients + "&number=10&offset=" + strconv.Itoa(offset) + "&diet=" + strings.Join(formData.Diets, ",") + "&cuisine=" + strings.Join(formData.Cuisine, ",") + "&apiKey=" + os.Getenv("APIKEY")
 			fmt.Println(url)
 			method := "GET"
