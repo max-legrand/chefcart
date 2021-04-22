@@ -520,7 +520,7 @@ func LaunchServer() {
 			offset := 0
 			resultsSeen := 0
 			// Corresponds to the SpoonacularHandler & IngChecker
-			url := "https://api.spoonacular.com/recipes/complexSearch?intolerances=" + strings.Join(formData.Intolerances, ",") + "&includeIngredients=" + ingredients + "&excludeIngredients=" + formData.ExcludedIngredients + "&number=10&offset=" + strconv.Itoa(offset) + "&diet=" + strings.Join(formData.Diets, ",") + "&cuisine=" + strings.Join(formData.Cuisine, ",") + "&apiKey=" + os.Getenv("APIKEY")
+			url := "https://api.spoonacular.com/recipes/complexSearch?fillIngredients=true&intolerances=" + strings.Join(formData.Intolerances, ",") + "&includeIngredients=" + ingredients + "&excludeIngredients=" + formData.ExcludedIngredients + "&number=10&offset=" + strconv.Itoa(offset) + "&diet=" + strings.Join(formData.Diets, ",") + "&cuisine=" + strings.Join(formData.Cuisine, ",") + "&apiKey=" + os.Getenv("APIKEY")
 			fmt.Println(url)
 			method := "GET"
 

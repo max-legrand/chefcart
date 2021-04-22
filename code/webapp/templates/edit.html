@@ -142,7 +142,7 @@
         e.preventDefault()
         let city = $("#city").val()
         let state = $("#stateselect").val()
-        let url = "http://api.geonames.org/postalCodeSearchJSON?username=malaow3&placename=" + city + ", " + state + "&placename_startsWith=" + city + "&maxRows=1&countryBias=US"
+        let url = "https://secure.geonames.org/postalCodeSearchJSON?username=malaow3&placename=" + city + ", " + state + "&placename_startsWith=" + city + "&maxRows=1&countryBias=US"
 
         var requestOptions = {
             method: 'GET',
